@@ -13,6 +13,11 @@ RUN        = $(DOCKER_RUN) -v $(CWD):$(BASE) -w $(BASE) $(UNIT_ENVS) $(PORTS) $(
 LINT       = golangci-lint --timeout=24h run pkg/... && staticcheck ./... && go vet ./...
 TEST       = $(GO) test -v -race ./...
 
+.DEFAULT_GOAL := build
+
+.PHONY: build
+build:
+	$(GO) build ./...
 
 .PHONY: docker
 docker:
