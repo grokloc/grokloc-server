@@ -1,0 +1,5 @@
+FROM archlinux:latest
+RUN pacman -Sy
+RUN pacman --noconfirm -Syu
+CMD ["tail", "-f", "/dev/null"]
+
