@@ -24,6 +24,10 @@ jobs:
     - name: Test
       run: go test -race -v ./...
 
-    - name: Lint
+    - name: Checks
       run: go install honnef.co/go/tools/cmd/staticcheck@latest && staticcheck ./... && go vet ./...
-      
+
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v2
+      with:
+        version: v1.43.0
