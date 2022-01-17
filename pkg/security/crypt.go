@@ -29,6 +29,8 @@ func MakeKey(s string) ([]byte, error) {
 }
 
 // Encrypt returns the hex-encoded AES symmetric encryption of s with key
+//
+// MakeKey is the best way to derive a key
 func Encrypt(s string, key []byte) (string, error) {
 	c, err := aes.NewCipher(key)
 	if err != nil {
@@ -48,6 +50,8 @@ func Encrypt(s string, key []byte) (string, error) {
 
 // Decrypt reverses Encrypt
 // e is the crypted+encoded string
+//
+// MakeKey is the best way to derive a key
 func Decrypt(e string, key []byte) (string, error) {
 	d, err := hex.DecodeString(e)
 	if err != nil {
