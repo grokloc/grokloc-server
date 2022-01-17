@@ -78,7 +78,49 @@ func (u User) Insert(ctx context.Context, db *sql.DB) error {
 }
 
 // Create creates an encrypted user, validates the org, then inserts the user
-// (should read user from db before returning to capture ctime, mtime)
+// (read user to capture ctime, mtime)
+func Create(
+	ctx context.Context,
+	displayName,
+	email,
+	org,
+	password string,
+	key []byte,
+	db *sql.DB) (*User, error) {
+
+	// check that org exists and is active
+	q := fmt.Sprintf(`select count(*)
+                          from %s
+                          where
+                            id = $1
+                            and
+                            status = $2`,
+		schemas.OrgsTableName)
+
+	var count int
+	err := db.QueryRowContext(ctx, q, org, models.StatusActive).Scan(&count)
+	if err != nil {
+		return nil, err
+	}
+
+	if count != 1 {
+		return nil, models.ErrRelatedOrg
+	}
+
+	// generate encrypted user
+	u, err := Encrypted(displayName, email, org, password, key)
+	if err != nil {
+		return nil, err
+	}
+
+	// insert user
+	err = u.Insert(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+
+	return Read(ctx, u.ID, key, db)
+}
 
 // Encrypted creates a new user that can be inserted
 func Encrypted(displayName, email, org, password string, key []byte) (*User, error) {

@@ -21,16 +21,18 @@ type Org struct {
 const Version = 0
 
 // Create instantiates a new owner, inserts it, and inserts a new org
-// (should read org from db before returning to capture ctime, mtime)
+// (read org to capture ctime, mtime)
 func Create(
 	ctx context.Context,
 	name, ownerDisplayName, ownerEmail, ownerPassword string,
 	key []byte,
 	db *sql.DB) (*Org, error) {
+
 	// generate org id
 	id := uuid.NewString()
 
 	// create the owner user
+	// NOTE! this user is still unconfirmed
 	ownerUser, err := user.Encrypted(
 		ownerDisplayName,
 		ownerEmail,
@@ -46,6 +48,8 @@ func Create(
 	if err != nil {
 		return nil, err
 	}
+
+	// TODO change owner status to active
 
 	// insert org
 	q := fmt.Sprintf(`insert into %s
@@ -82,7 +86,8 @@ func Create(
 		return nil, models.ErrRowsAffected
 	}
 
-	return nil, nil
+	// read back to get ctime, mtime
+	return Read(ctx, id, db)
 }
 
 func Read(ctx context.Context, id string, db *sql.DB) (*Org, error) {
