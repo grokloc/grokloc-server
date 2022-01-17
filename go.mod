@@ -2,6 +2,14 @@ module github.com/grokloc/grokloc-server
 
 go 1.17
 
+replace (
+	github.com/grokloc/grokloc-go/pkg/env => ./pkg/env
+	github.com/grokloc/grokloc-go/pkg/models => ./pkg/models
+	github.com/grokloc/grokloc-go/pkg/models/admin => ./pkg/models/admin
+	github.com/grokloc/grokloc-go/pkg/schemas => ./pkg/schemas
+	github.com/grokloc/grokloc-go/pkg/security => ./pkg/security
+)
+
 require (
 	github.com/google/uuid v1.3.0
 	github.com/matthewhartstonge/argon2 v0.1.5
