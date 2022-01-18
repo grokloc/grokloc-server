@@ -49,7 +49,11 @@ func Create(
 		return nil, err
 	}
 
-	// TODO change owner status to active
+	// make active
+	err = ownerUser.UpdateStatus(ctx, models.StatusActive, db)
+	if err != nil {
+		return nil, err
+	}
 
 	// insert org
 	q := fmt.Sprintf(`insert into %s
@@ -127,4 +131,43 @@ func Read(ctx context.Context, id string, db *sql.DB) (*Org, error) {
 		return nil, models.ErrModelMigrate
 	}
 	return o, nil
+}
+
+// UpdateOwner sets the org owner
+// TODO check owner exists, is in same org, is active
+func (o *Org) UpdateOwner(ctx context.Context,
+	owner string,
+	db *sql.DB) error {
+
+	q := fmt.Sprintf(`select count(*)
+                          from %s
+                          where
+                          id = $1
+                           and
+                          org = $2
+                           and
+                          status = $3`, schemas.UsersTableName)
+
+	var count int
+	err := db.QueryRowContext(ctx, q, owner, o.ID, models.StatusActive).Scan(&count)
+	if err != nil {
+		return err
+	}
+
+	if count != 1 {
+		return models.ErrRelatedUser
+	}
+
+	return models.Update(ctx, schemas.OrgsTableName, o.ID, "owner", owner, db)
+}
+
+// UpdateStatus sets the org status
+func (o *Org) UpdateStatus(ctx context.Context,
+	status models.Status,
+	db *sql.DB) error {
+
+	if status == models.StatusNone {
+		return models.ErrDisallowedValue
+	}
+	return models.Update(ctx, schemas.OrgsTableName, o.ID, "status", status, db)
 }

@@ -93,7 +93,7 @@ func Create(
                           from %s
                           where
                             id = $1
-                            and
+                          and
                             status = $2`,
 		schemas.OrgsTableName)
 
@@ -130,6 +130,10 @@ func Encrypted(displayName, email, org, password string, key []byte) (*User, err
 	if !security.SafeStr(email) {
 		return nil, errors.New("email deemed unsafe")
 	}
+	if !security.SafeStr(password) {
+		return nil, errors.New("password deemed unsafe")
+	}
+
 	// org will be checked in the db, password assumed derived
 
 	apiSecret := uuid.NewString()
@@ -240,4 +244,74 @@ func Read(ctx context.Context, id string, key []byte, db *sql.DB) (*User, error)
 		return nil, models.ErrModelMigrate
 	}
 	return u, nil
+}
+
+// UpdateDisplayName sets the user display name
+func (u *User) UpdateDisplayName(ctx context.Context,
+	displayName string,
+	key []byte,
+	db *sql.DB) error {
+
+	if !security.SafeStr(displayName) {
+		return errors.New("display name malformed")
+	}
+
+	// both the display name and the digest must be reset
+	encryptedDisplayName, err := security.Encrypt(displayName, key)
+	if err != nil {
+		return err
+	}
+
+	q := `update users
+              set display_name = $1,
+              display_name_digest = $2
+              where id = $3`
+
+	result, err := db.ExecContext(ctx,
+		q,
+		encryptedDisplayName,
+		security.EncodedSHA256(displayName),
+		u.ID)
+
+	if err != nil {
+		return err
+	}
+
+	updated, err := result.RowsAffected()
+	if err != nil {
+		// the db does not support a basic feature
+		panic("cannot exec RowsAffected:" + err.Error())
+	}
+
+	if updated == 0 {
+		return sql.ErrNoRows
+	}
+	if updated != 1 {
+		return models.ErrRowsAffected
+	}
+
+	return nil
+}
+
+// UpdatePassword sets the user password
+// password assumed derived
+func (u *User) UpdatePassword(ctx context.Context,
+	password string,
+	db *sql.DB) error {
+
+	if !security.SafeStr(password) {
+		return errors.New("password malformed")
+	}
+	return models.Update(ctx, schemas.UsersTableName, u.ID, "password", password, db)
+}
+
+// UpdateStatus sets the user status
+func (u *User) UpdateStatus(ctx context.Context,
+	status models.Status,
+	db *sql.DB) error {
+
+	if status == models.StatusNone {
+		return errors.New("cannot use None as a stored status")
+	}
+	return models.Update(ctx, schemas.UsersTableName, u.ID, "status", status, db)
 }
