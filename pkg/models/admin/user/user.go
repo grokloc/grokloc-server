@@ -262,6 +262,8 @@ func (u *User) UpdateDisplayName(ctx context.Context,
 		return err
 	}
 
+	displayNameDigest := security.EncodedSHA256(displayName)
+
 	q := `update users
               set display_name = $1,
               display_name_digest = $2
@@ -270,7 +272,7 @@ func (u *User) UpdateDisplayName(ctx context.Context,
 	result, err := db.ExecContext(ctx,
 		q,
 		encryptedDisplayName,
-		security.EncodedSHA256(displayName),
+		displayNameDigest,
 		u.ID)
 
 	if err != nil {
@@ -283,12 +285,12 @@ func (u *User) UpdateDisplayName(ctx context.Context,
 		panic("cannot exec RowsAffected:" + err.Error())
 	}
 
-	if updated == 0 {
-		return sql.ErrNoRows
-	}
 	if updated != 1 {
 		return models.ErrRowsAffected
 	}
+
+	u.DisplayName = displayName
+	u.DisplayNameDigest = displayNameDigest
 
 	return nil
 }
@@ -302,7 +304,11 @@ func (u *User) UpdatePassword(ctx context.Context,
 	if !security.SafeStr(password) {
 		return errors.New("password malformed")
 	}
-	return models.Update(ctx, schemas.UsersTableName, u.ID, "password", password, db)
+	err := models.Update(ctx, schemas.UsersTableName, u.ID, "password", password, db)
+	if err == nil {
+		u.Password = password
+	}
+	return err
 }
 
 // UpdateStatus sets the user status
@@ -313,5 +319,9 @@ func (u *User) UpdateStatus(ctx context.Context,
 	if status == models.StatusNone {
 		return errors.New("cannot use None as a stored status")
 	}
-	return models.Update(ctx, schemas.UsersTableName, u.ID, "status", status, db)
+	err := models.Update(ctx, schemas.UsersTableName, u.ID, "status", status, db)
+	if err == nil {
+		u.Meta.Status = status
+	}
+	return err
 }

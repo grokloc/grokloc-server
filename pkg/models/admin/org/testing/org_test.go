@@ -1,6 +1,5 @@
-// Package testing exists to break an import cycle -
-// state imports org, therefore testing of org cannot
-// be in the org pkg or a loop is created
+// Package testing provides tests for the org package
+// (broken out to break import cycles)
 package testing
 
 import (
@@ -12,7 +11,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/grokloc/grokloc-server/pkg/app"
 	"github.com/grokloc/grokloc-server/pkg/env"
+	"github.com/grokloc/grokloc-server/pkg/models"
 	"github.com/grokloc/grokloc-server/pkg/models/admin/org"
+	"github.com/grokloc/grokloc-server/pkg/security"
 	"github.com/grokloc/grokloc-server/pkg/state"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -37,7 +38,7 @@ func (s *OrgSuite) TestReadOrg() {
 	// State initialization creates an org (and owner user)
 	o, err := org.Read(context.Background(), s.st.RootOrg, replica)
 	require.Nil(s.T(), err)
-	require.Equal(s.T(), o.ID, s.st.RootOrg)
+	require.Equal(s.T(), s.st.RootOrg, o.ID)
 }
 
 func (s *OrgSuite) TestReadOrgMiss() {
@@ -46,6 +47,30 @@ func (s *OrgSuite) TestReadOrgMiss() {
 	_, err := org.Read(context.Background(), uuid.NewString(), replica)
 	require.Error(s.T(), err)
 	require.Equal(s.T(), sql.ErrNoRows, err)
+}
+
+func (s *OrgSuite) TestUpdateStatus() {
+	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
+	require.Nil(s.T(), err)
+
+	o, err := org.Create(
+		context.Background(),
+		uuid.NewString(), // org name
+		uuid.NewString(), // org owner display name
+		uuid.NewString(), // org owner email
+		ownerPassword,
+		s.st.DBKey,
+		s.st.Master,
+	)
+	require.Nil(s.T(), err)
+
+	err = o.UpdateStatus(context.Background(), models.StatusInactive, s.st.Master)
+	require.Nil(s.T(), err)
+	require.Equal(s.T(), models.StatusInactive, o.Meta.Status)
+
+	o_read, err := org.Read(context.Background(), o.ID, s.st.RandomReplica())
+	require.Nil(s.T(), err)
+	require.Equal(s.T(), models.StatusInactive, o_read.Meta.Status)
 }
 
 func TestOrgSuite(t *testing.T) {

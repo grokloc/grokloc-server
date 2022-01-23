@@ -158,7 +158,11 @@ func (o *Org) UpdateOwner(ctx context.Context,
 		return models.ErrRelatedUser
 	}
 
-	return models.Update(ctx, schemas.OrgsTableName, o.ID, "owner", owner, db)
+	err = models.Update(ctx, schemas.OrgsTableName, o.ID, "owner", owner, db)
+	if err == nil {
+		o.Owner = owner
+	}
+	return err
 }
 
 // UpdateStatus sets the org status
@@ -169,5 +173,9 @@ func (o *Org) UpdateStatus(ctx context.Context,
 	if status == models.StatusNone {
 		return models.ErrDisallowedValue
 	}
-	return models.Update(ctx, schemas.OrgsTableName, o.ID, "status", status, db)
+	err := models.Update(ctx, schemas.OrgsTableName, o.ID, "status", status, db)
+	if err == nil {
+		o.Meta.Status = status
+	}
+	return err
 }
