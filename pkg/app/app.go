@@ -3,6 +3,8 @@ package app
 
 import (
 	"database/sql"
+	"log"
+	"math/rand"
 
 	"github.com/grokloc/grokloc-server/pkg/env"
 	"github.com/matthewhartstonge/argon2"
@@ -19,4 +21,13 @@ type State struct {
 	Argon2Cfg                            argon2.Config
 	RootOrg, RootUser, RootUserAPISecret string
 	L                                    *zap.Logger
+}
+
+// RandomReplica selects a random replica
+func (s *State) RandomReplica() *sql.DB {
+	l := len(s.Replicas)
+	if l == 0 {
+		log.Fatal("there are no replicas")
+	}
+	return s.Replicas[rand.Intn(l)]
 }

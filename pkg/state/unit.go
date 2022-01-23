@@ -1,6 +1,7 @@
 package state
 
 import (
+	"context"
 	"database/sql"
 	"log"
 
@@ -11,6 +12,8 @@ import (
 
 	"github.com/grokloc/grokloc-server/pkg/app"
 	"github.com/grokloc/grokloc-server/pkg/env"
+	"github.com/grokloc/grokloc-server/pkg/models/admin/org"
+	"github.com/grokloc/grokloc-server/pkg/models/admin/user"
 	"github.com/grokloc/grokloc-server/pkg/schemas"
 	"github.com/grokloc/grokloc-server/pkg/security"
 )
@@ -39,15 +42,47 @@ func Unit() *app.State {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// HERE: add call to Org.create, User.read using master,
-	// assign to Root*
+
+	argon2Cfg := argon2.DefaultConfig()
+
+	rootUserPassword, err := security.DerivePassword(uuid.NewString(), argon2Cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	rootOrg, err := org.Create(
+		context.Background(),
+		uuid.NewString(), // org name
+		uuid.NewString(), // org owner display name
+		uuid.NewString(), // org owner email
+		rootUserPassword,
+		dbKey,
+		db,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	rootUser, err := user.Read(
+		context.Background(),
+		rootOrg.Owner,
+		dbKey,
+		db,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	return &app.State{
-		Level:     env.Unit,
-		Master:    db,
-		Replicas:  []*sql.DB{db},
-		DBKey:     dbKey,
-		TokenKey:  tokenKey,
-		Argon2Cfg: argon2.DefaultConfig(),
-		L:         logger,
+		Level:             env.Unit,
+		Master:            db,
+		Replicas:          []*sql.DB{db},
+		DBKey:             dbKey,
+		TokenKey:          tokenKey,
+		Argon2Cfg:         argon2Cfg,
+		RootOrg:           rootOrg.ID,
+		RootUser:          rootUser.ID,
+		RootUserAPISecret: rootUser.APISecret,
+		L:                 logger,
 	}
 }

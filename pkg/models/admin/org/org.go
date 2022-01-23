@@ -32,7 +32,7 @@ func Create(
 	id := uuid.NewString()
 
 	// create the owner user
-	// NOTE! this user is still unconfirmed
+	// owner user is still unconfirmed, see update status below
 	ownerUser, err := user.Encrypted(
 		ownerDisplayName,
 		ownerEmail,
