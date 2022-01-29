@@ -23,9 +23,6 @@ var ErrModelMigrate error = errors.New("schema version error; cannot migrate mod
 // ErrDisallowedValue signals a value of the right type, just not allowed
 var ErrDisallowedValue error = errors.New("value disallowed in this context")
 
-// ErrDigest signals a checksum mismatch
-var ErrDigest = errors.New("value does not have correct digest")
-
 // UniqueConstraint will try to match the db unique constraint violation
 func UniqueConstraint(err error) bool {
 	return strings.Contains(strings.ToLower(err.Error()), "unique")

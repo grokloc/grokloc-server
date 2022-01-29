@@ -12,6 +12,9 @@ import (
 	"github.com/matthewhartstonge/argon2"
 )
 
+// ErrDigest signals a checksum mismatch
+var ErrDigest = errors.New("value does not have correct digest")
+
 // EncodedSHA256 returns the encoded (base16) sha256sums
 func EncodedSHA256(s string) string {
 	sum := sha256.Sum256([]byte(s))
@@ -52,7 +55,7 @@ func Encrypt(s string, key []byte) (string, error) {
 // e is the crypted+encoded string
 //
 // MakeKey is the best way to derive a key
-func Decrypt(e string, key []byte) (string, error) {
+func Decrypt(e, expected_sha256 string, key []byte) (string, error) {
 	d, err := hex.DecodeString(e)
 	if err != nil {
 		return "", err
@@ -74,7 +77,11 @@ func Decrypt(e string, key []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(bs), nil
+	s := string(bs)
+	if EncodedSHA256(s) != expected_sha256 {
+		return "", ErrDigest
+	}
+	return s, nil
 }
 
 // DerivePassword performs a one-way hash on a password using argon2

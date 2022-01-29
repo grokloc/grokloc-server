@@ -210,28 +210,19 @@ func Read(ctx context.Context, id string, key []byte, db *sql.DB) (*User, error)
 		return nil, err
 	}
 
-	u.APISecret, err = security.Decrypt(encryptedAPISecret, key)
+	u.APISecret, err = security.Decrypt(encryptedAPISecret, u.APISecretDigest, key)
 	if err != nil {
 		return nil, err
-	}
-	if security.EncodedSHA256(u.APISecret) != u.APISecretDigest {
-		return nil, models.ErrDigest
 	}
 
-	u.DisplayName, err = security.Decrypt(encryptedDisplayName, key)
+	u.DisplayName, err = security.Decrypt(encryptedDisplayName, u.DisplayNameDigest, key)
 	if err != nil {
 		return nil, err
-	}
-	if security.EncodedSHA256(u.DisplayName) != u.DisplayNameDigest {
-		return nil, models.ErrDigest
 	}
 
-	u.Email, err = security.Decrypt(encryptedEmail, key)
+	u.Email, err = security.Decrypt(encryptedEmail, u.EmailDigest, key)
 	if err != nil {
 		return nil, err
-	}
-	if security.EncodedSHA256(u.Email) != u.EmailDigest {
-		return nil, models.ErrDigest
 	}
 
 	u.Meta.Status, err = models.NewStatus(statusRaw)
