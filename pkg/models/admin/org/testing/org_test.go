@@ -71,6 +71,7 @@ func (s *OrgSuite) TestUpdateStatus() {
 
 	o_read, err := org.Read(context.Background(), o.ID, s.st.RandomReplica())
 	require.Nil(s.T(), err)
+	require.Equal(s.T(), models.StatusInactive, o.Meta.Status)
 	require.Equal(s.T(), models.StatusInactive, o_read.Meta.Status)
 }
 
