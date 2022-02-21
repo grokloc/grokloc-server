@@ -13,20 +13,20 @@ type Status int
 
 // exported status values
 const (
-	StatusNone        = Status(-1)
-	StatusUnconfirmed = Status(0)
-	StatusActive      = Status(1)
-	StatusInactive    = Status(2)
+	StatusNone        = Status(0)
+	StatusUnconfirmed = Status(1)
+	StatusActive      = Status(2)
+	StatusInactive    = Status(3)
 )
 
 // NewStatus creates a Status from an int
 func NewStatus(status int) (Status, error) {
 	switch status {
-	case 0:
-		return StatusUnconfirmed, nil
 	case 1:
-		return StatusActive, nil
+		return StatusUnconfirmed, nil
 	case 2:
+		return StatusActive, nil
+	case 3:
 		return StatusInactive, nil
 	default:
 		return StatusNone, errors.New("unknown status")
