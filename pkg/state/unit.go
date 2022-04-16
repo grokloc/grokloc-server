@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/matthewhartstonge/argon2"
 	_ "github.com/mattn/go-sqlite3" //
-	"go.uber.org/zap"
 
 	"github.com/grokloc/grokloc-server/pkg/app"
 	"github.com/grokloc/grokloc-server/pkg/env"
@@ -35,10 +34,6 @@ func Unit() *app.State {
 		log.Fatal(err)
 	}
 	tokenKey, err := security.MakeKey(uuid.NewString())
-	if err != nil {
-		log.Fatal(err)
-	}
-	logger, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,6 +78,5 @@ func Unit() *app.State {
 		RootOrg:           rootOrg.ID,
 		RootUser:          rootUser.ID,
 		RootUserAPISecret: rootUser.APISecret,
-		L:                 logger,
 	}
 }

@@ -8,7 +8,6 @@ import (
 
 	"github.com/grokloc/grokloc-server/pkg/env"
 	"github.com/matthewhartstonge/argon2"
-	"go.uber.org/zap"
 )
 
 // State contains references to all external state mechanisms
@@ -20,7 +19,6 @@ type State struct {
 	TokenKey                             []byte
 	Argon2Cfg                            argon2.Config
 	RootOrg, RootUser, RootUserAPISecret string
-	L                                    *zap.Logger
 }
 
 // RandomReplica selects a random replica
