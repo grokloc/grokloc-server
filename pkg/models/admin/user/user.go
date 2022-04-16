@@ -11,6 +11,7 @@ import (
 	"github.com/grokloc/grokloc-server/pkg/models"
 	"github.com/grokloc/grokloc-server/pkg/schemas"
 	"github.com/grokloc/grokloc-server/pkg/security"
+	"go.uber.org/zap"
 )
 
 const Version = 0
@@ -29,6 +30,11 @@ type User struct {
 }
 
 func (u User) Insert(ctx context.Context, db *sql.DB) error {
+
+	defer func() {
+		_ = zap.L().Sync()
+	}()
+
 	q := fmt.Sprintf(`insert into %s
                           (id,
                            api_secret,
@@ -60,6 +66,9 @@ func (u User) Insert(ctx context.Context, db *sql.DB) error {
 		u.Meta.SchemaVersion)
 
 	if err != nil {
+		zap.L().Error("user::Insert: Exec",
+			zap.Error(err),
+		)
 		if models.UniqueConstraint(err) {
 			return models.ErrConflict
 		}
@@ -72,8 +81,12 @@ func (u User) Insert(ctx context.Context, db *sql.DB) error {
 		panic("cannot exec RowsAffected:" + err.Error())
 	}
 	if inserted != 1 {
+		zap.L().Error("user::Insert: rows affected",
+			zap.Error(models.ErrRowsAffected),
+		)
 		return models.ErrRowsAffected
 	}
+
 	return nil
 }
 
@@ -88,6 +101,10 @@ func Create(
 	key []byte,
 	db *sql.DB) (*User, error) {
 
+	defer func() {
+		_ = zap.L().Sync()
+	}()
+
 	// check that org exists and is active
 	q := fmt.Sprintf(`select count(*)
                           from %s
@@ -100,38 +117,75 @@ func Create(
 	var count int
 	err := db.QueryRowContext(ctx, q, org, models.StatusActive).Scan(&count)
 	if err != nil {
+		zap.L().Error("user::Create: QueryRow",
+			zap.Error(err),
+		)
 		return nil, err
 	}
 
 	if count != 1 {
+		zap.L().Error("user::Create: org check failure",
+			zap.Error(models.ErrRelatedOrg),
+		)
 		return nil, models.ErrRelatedOrg
 	}
 
 	// generate encrypted user
 	u, err := Encrypted(displayName, email, org, password, key)
 	if err != nil {
+		zap.L().Error("user::Create: Encrypted",
+			zap.Error(err),
+		)
 		return nil, err
 	}
 
 	// insert user
 	err = u.Insert(ctx, db)
 	if err != nil {
+		zap.L().Error("user::Create: Insert",
+			zap.Error(err),
+		)
 		return nil, err
 	}
 
-	return Read(ctx, u.ID, key, db)
+	user, err := Read(ctx, u.ID, key, db)
+	if err != nil {
+		zap.L().Error("user::Create: Read",
+			zap.Error(err),
+		)
+		return nil, err
+	}
+
+	return user, nil
 }
 
 // Encrypted creates a new user that can be inserted
 func Encrypted(displayName, email, org, password string, key []byte) (*User, error) {
+
+	defer func() {
+		_ = zap.L().Sync()
+	}()
+
 	if !security.SafeStr(displayName) {
-		return nil, errors.New("display_name deemed unsafe")
+		err := errors.New("display_name deemed unsafe")
+		zap.L().Error("user::Encrypted: display name",
+			zap.Error(err),
+		)
+		return nil, err
 	}
 	if !security.SafeStr(email) {
-		return nil, errors.New("email deemed unsafe")
+		err := errors.New("email deemed unsafe")
+		zap.L().Error("user::Encrypted: email",
+			zap.Error(err),
+		)
+		return nil, err
 	}
 	if !security.SafeStr(password) {
-		return nil, errors.New("password deemed unsafe")
+		err := errors.New("password deemed unsafe")
+		zap.L().Error("user::Encrypted: password",
+			zap.Error(err),
+		)
+		return nil, err
 	}
 
 	// org will be checked in the db, password assumed derived
@@ -139,14 +193,23 @@ func Encrypted(displayName, email, org, password string, key []byte) (*User, err
 	apiSecret := uuid.NewString()
 	apiSecretEncrypted, err := security.Encrypt(apiSecret, key)
 	if err != nil {
+		zap.L().Error("user::Encrypted: api secret",
+			zap.Error(err),
+		)
 		return nil, err
 	}
 	displayNameEncrypted, err := security.Encrypt(displayName, key)
 	if err != nil {
+		zap.L().Error("user::Encrypted: display name",
+			zap.Error(err),
+		)
 		return nil, err
 	}
 	emailEncrypted, err := security.Encrypt(email, key)
 	if err != nil {
+		zap.L().Error("user::Encrypted: email",
+			zap.Error(err),
+		)
 		return nil, err
 	}
 
@@ -171,6 +234,11 @@ func Encrypted(displayName, email, org, password string, key []byte) (*User, err
 }
 
 func Read(ctx context.Context, id string, key []byte, db *sql.DB) (*User, error) {
+
+	defer func() {
+		_ = zap.L().Sync()
+	}()
+
 	q := fmt.Sprintf(`select
                           api_secret,
                           api_secret_digest,
@@ -207,33 +275,52 @@ func Read(ctx context.Context, id string, key []byte, db *sql.DB) (*User, error)
 		&statusRaw,
 		&u.Meta.SchemaVersion)
 	if err != nil {
+		zap.L().Error("user::Read: QueryRow",
+			zap.Error(err),
+		)
 		return nil, err
 	}
 
 	u.APISecret, err = security.Decrypt(encryptedAPISecret, u.APISecretDigest, key)
 	if err != nil {
+		zap.L().Error("user::Read: api secret",
+			zap.Error(err),
+		)
 		return nil, err
 	}
 
 	u.DisplayName, err = security.Decrypt(encryptedDisplayName, u.DisplayNameDigest, key)
 	if err != nil {
+		zap.L().Error("user::Read: display name",
+			zap.Error(err),
+		)
 		return nil, err
 	}
 
 	u.Email, err = security.Decrypt(encryptedEmail, u.EmailDigest, key)
 	if err != nil {
+		zap.L().Error("user::Read: email",
+			zap.Error(err),
+		)
 		return nil, err
 	}
 
 	u.Meta.Status, err = models.NewStatus(statusRaw)
 	if err != nil {
+		zap.L().Error("user::Read: status",
+			zap.Error(err),
+		)
 		return nil, err
 	}
 
 	if u.Meta.SchemaVersion != Version {
+		zap.L().Error("user::Read: schema version",
+			zap.Error(models.ErrModelMigrate),
+		)
 		// handle migrating different versions, or err
 		return nil, models.ErrModelMigrate
 	}
+
 	return u, nil
 }
 
@@ -243,13 +330,24 @@ func (u *User) UpdateDisplayName(ctx context.Context,
 	key []byte,
 	db *sql.DB) error {
 
+	defer func() {
+		_ = zap.L().Sync()
+	}()
+
 	if !security.SafeStr(displayName) {
-		return errors.New("display name malformed")
+		err := errors.New("display name malformed")
+		zap.L().Error("user::UpdateDisplayName: display name",
+			zap.Error(err),
+		)
+		return err
 	}
 
 	// both the display name and the digest must be reset
 	encryptedDisplayName, err := security.Encrypt(displayName, key)
 	if err != nil {
+		zap.L().Error("user::UpdateDisplayName: display name",
+			zap.Error(err),
+		)
 		return err
 	}
 
@@ -267,6 +365,9 @@ func (u *User) UpdateDisplayName(ctx context.Context,
 		u.ID)
 
 	if err != nil {
+		zap.L().Error("user::UpdateDisplayName: Exec",
+			zap.Error(err),
+		)
 		return err
 	}
 
@@ -277,6 +378,9 @@ func (u *User) UpdateDisplayName(ctx context.Context,
 	}
 
 	if updated != 1 {
+		zap.L().Error("user::UpdateDisplayName: rows affected",
+			zap.Error(err),
+		)
 		return models.ErrRowsAffected
 	}
 
@@ -292,13 +396,27 @@ func (u *User) UpdatePassword(ctx context.Context,
 	password string,
 	db *sql.DB) error {
 
+	defer func() {
+		_ = zap.L().Sync()
+	}()
+
 	if !security.SafeStr(password) {
-		return errors.New("password malformed")
+		err := errors.New("password malformed")
+		zap.L().Error("user::UpdatePassword: password",
+			zap.Error(err),
+		)
+		return err
 	}
+
 	err := models.Update(ctx, schemas.UsersTableName, u.ID, "password", password, db)
-	if err == nil {
+	if err != nil {
+		zap.L().Error("user::UpdatePassword: Update",
+			zap.Error(err),
+		)
+	} else {
 		u.Password = password
 	}
+
 	return err
 }
 
@@ -307,12 +425,26 @@ func (u *User) UpdateStatus(ctx context.Context,
 	status models.Status,
 	db *sql.DB) error {
 
+	defer func() {
+		_ = zap.L().Sync()
+	}()
+
 	if status == models.StatusNone {
-		return errors.New("cannot use None as a stored status")
+		err := errors.New("cannot use None as a stored status")
+		zap.L().Error("user::UpdateStatus: status",
+			zap.Error(err),
+		)
+		return err
 	}
+
 	err := models.Update(ctx, schemas.UsersTableName, u.ID, "status", status, db)
-	if err == nil {
+	if err != nil {
+		zap.L().Error("user::UpdateStatus: status",
+			zap.Error(err),
+		)
+	} else {
 		u.Meta.Status = status
 	}
+
 	return err
 }
