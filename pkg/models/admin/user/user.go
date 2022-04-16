@@ -124,7 +124,7 @@ func Create(
 	}
 
 	if count != 1 {
-		zap.L().Error("user::Create: org check failure",
+		zap.L().Error("user::Create: org check",
 			zap.Error(models.ErrRelatedOrg),
 		)
 		return nil, models.ErrRelatedOrg
@@ -379,7 +379,7 @@ func (u *User) UpdateDisplayName(ctx context.Context,
 
 	if updated != 1 {
 		zap.L().Error("user::UpdateDisplayName: rows affected",
-			zap.Error(err),
+			zap.Error(models.ErrRowsAffected),
 		)
 		return models.ErrRowsAffected
 	}
@@ -430,11 +430,10 @@ func (u *User) UpdateStatus(ctx context.Context,
 	}()
 
 	if status == models.StatusNone {
-		err := errors.New("cannot use None as a stored status")
 		zap.L().Error("user::UpdateStatus: status",
-			zap.Error(err),
+			zap.Error(models.ErrDisallowedValue),
 		)
-		return err
+		return models.ErrDisallowedValue
 	}
 
 	err := models.Update(ctx, schemas.UsersTableName, u.ID, "status", status, db)

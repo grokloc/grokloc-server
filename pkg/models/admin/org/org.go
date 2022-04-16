@@ -10,6 +10,7 @@ import (
 	"github.com/grokloc/grokloc-server/pkg/models"
 	"github.com/grokloc/grokloc-server/pkg/models/admin/user"
 	"github.com/grokloc/grokloc-server/pkg/schemas"
+	"go.uber.org/zap"
 )
 
 type Org struct {
@@ -28,6 +29,10 @@ func Create(
 	key []byte,
 	db *sql.DB) (*Org, error) {
 
+	defer func() {
+		_ = zap.L().Sync()
+	}()
+
 	// generate org id
 	id := uuid.NewString()
 
@@ -40,18 +45,27 @@ func Create(
 		ownerPassword,
 		key)
 	if err != nil {
+		zap.L().Error("org::Create: user::Encrypted",
+			zap.Error(err),
+		)
 		return nil, err
 	}
 
 	// insert owner user
 	err = ownerUser.Insert(ctx, db)
 	if err != nil {
+		zap.L().Error("org::Create: user::Insert",
+			zap.Error(err),
+		)
 		return nil, err
 	}
 
 	// make active
 	err = ownerUser.UpdateStatus(ctx, models.StatusActive, db)
 	if err != nil {
+		zap.L().Error("org::Create: UpdateStatus",
+			zap.Error(err),
+		)
 		return nil, err
 	}
 
@@ -75,6 +89,9 @@ func Create(
 		Version)
 
 	if err != nil {
+		zap.L().Error("org::Create: Exec",
+			zap.Error(err),
+		)
 		if models.UniqueConstraint(err) {
 			return nil, models.ErrConflict
 		}
@@ -87,6 +104,9 @@ func Create(
 		panic("cannot exec RowsAffected:" + err.Error())
 	}
 	if inserted != 1 {
+		zap.L().Error("org::Create: rows affected",
+			zap.Error(models.ErrRowsAffected),
+		)
 		return nil, models.ErrRowsAffected
 	}
 
@@ -95,6 +115,11 @@ func Create(
 }
 
 func Read(ctx context.Context, id string, db *sql.DB) (*Org, error) {
+
+	defer func() {
+		_ = zap.L().Sync()
+	}()
+
 	q := fmt.Sprintf(`select
                           name,
                           owner,
@@ -118,6 +143,9 @@ func Read(ctx context.Context, id string, db *sql.DB) (*Org, error) {
 		&statusRaw,
 		&o.Meta.SchemaVersion)
 	if err != nil {
+		zap.L().Error("org::Read: QueryRow",
+			zap.Error(err),
+		)
 		return nil, err
 	}
 
@@ -128,8 +156,12 @@ func Read(ctx context.Context, id string, db *sql.DB) (*Org, error) {
 
 	if o.Meta.SchemaVersion != Version {
 		// handle migrating different versions, or err
+		zap.L().Error("org::Read: schema version",
+			zap.Error(models.ErrModelMigrate),
+		)
 		return nil, models.ErrModelMigrate
 	}
+
 	return o, nil
 }
 
@@ -138,6 +170,10 @@ func Read(ctx context.Context, id string, db *sql.DB) (*Org, error) {
 func (o *Org) UpdateOwner(ctx context.Context,
 	owner string,
 	db *sql.DB) error {
+
+	defer func() {
+		_ = zap.L().Sync()
+	}()
 
 	q := fmt.Sprintf(`select count(*)
                           from %s
@@ -151,17 +187,28 @@ func (o *Org) UpdateOwner(ctx context.Context,
 	var count int
 	err := db.QueryRowContext(ctx, q, owner, o.ID, models.StatusActive).Scan(&count)
 	if err != nil {
+		zap.L().Error("org::UpdateOwner: QueryRow",
+			zap.Error(err),
+		)
 		return err
 	}
 
 	if count != 1 {
+		zap.L().Error("org::UpdateOwner: owner check",
+			zap.Error(models.ErrRelatedUser),
+		)
 		return models.ErrRelatedUser
 	}
 
 	err = models.Update(ctx, schemas.OrgsTableName, o.ID, "owner", owner, db)
-	if err == nil {
+	if err != nil {
+		zap.L().Error("org::UpdateOwner: Update",
+			zap.Error(err),
+		)
+	} else {
 		o.Owner = owner
 	}
+
 	return err
 }
 
@@ -170,12 +217,25 @@ func (o *Org) UpdateStatus(ctx context.Context,
 	status models.Status,
 	db *sql.DB) error {
 
+	defer func() {
+		_ = zap.L().Sync()
+	}()
+
 	if status == models.StatusNone {
+		zap.L().Error("org::UpdateStatus: status",
+			zap.Error(models.ErrDisallowedValue),
+		)
 		return models.ErrDisallowedValue
 	}
+
 	err := models.Update(ctx, schemas.OrgsTableName, o.ID, "status", status, db)
-	if err == nil {
+	if err != nil {
+		zap.L().Error("org::UpdateStatus: Update",
+			zap.Error(err),
+		)
+	} else {
 		o.Meta.Status = status
 	}
+
 	return err
 }
