@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/matthewhartstonge/argon2"
 	_ "github.com/mattn/go-sqlite3" //
+	"go.uber.org/zap"
 
 	"github.com/grokloc/grokloc-server/pkg/app"
 	"github.com/grokloc/grokloc-server/pkg/env"
@@ -67,6 +68,13 @@ func Unit() *app.State {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// set the global logger for the unit env
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		log.Fatal(err)
+	}
+	_ = zap.ReplaceGlobals(logger)
 
 	return &app.State{
 		Level:             env.Unit,

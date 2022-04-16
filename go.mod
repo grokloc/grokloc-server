@@ -5,7 +5,6 @@ go 1.18
 replace (
 	github.com/grokloc/grokloc-server/pkg/app => ./pkg/app
 	github.com/grokloc/grokloc-server/pkg/env => ./pkg/env
-	github.com/grokloc/grokloc-server/pkg/l => ./pkg/l
 	github.com/grokloc/grokloc-server/pkg/models => ./pkg/models
 	github.com/grokloc/grokloc-server/pkg/models/admin => ./pkg/models/admin
 	github.com/grokloc/grokloc-server/pkg/models/admin/org => ./pkg/models/admin/org
