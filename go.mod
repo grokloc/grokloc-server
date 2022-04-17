@@ -9,10 +9,10 @@ replace (
 	github.com/grokloc/grokloc-server/pkg/app/admin/org/testing => ./pkg/app/admin/org/testing
 	github.com/grokloc/grokloc-server/pkg/app/admin/user => ./pkg/app/admin/user
 	github.com/grokloc/grokloc-server/pkg/app/admin/user/testing => ./pkg/app/admin/user/testing
+	github.com/grokloc/grokloc-server/pkg/app/state => ./pkg/app/state
 	github.com/grokloc/grokloc-server/pkg/env => ./pkg/env
 	github.com/grokloc/grokloc-server/pkg/models => ./pkg/models
 	github.com/grokloc/grokloc-server/pkg/security => ./pkg/security
-	github.com/grokloc/grokloc-server/pkg/state => ./pkg/state
 )
 
 require (

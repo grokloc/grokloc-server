@@ -1,4 +1,4 @@
-// Package state maintains handles to all external state mechanisms
+// Package state maintains handles to all external app state mechanisms
 package state
 
 import (

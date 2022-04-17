@@ -12,10 +12,10 @@ import (
 	"github.com/grokloc/grokloc-server/pkg/app"
 	"github.com/grokloc/grokloc-server/pkg/app/admin/org"
 	"github.com/grokloc/grokloc-server/pkg/app/admin/user"
+	"github.com/grokloc/grokloc-server/pkg/app/state"
 	"github.com/grokloc/grokloc-server/pkg/env"
 	"github.com/grokloc/grokloc-server/pkg/models"
 	"github.com/grokloc/grokloc-server/pkg/security"
-	"github.com/grokloc/grokloc-server/pkg/state"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
