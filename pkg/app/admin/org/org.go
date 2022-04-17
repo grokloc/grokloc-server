@@ -8,8 +8,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/grokloc/grokloc-server/pkg/app"
+	"github.com/grokloc/grokloc-server/pkg/app/admin/user"
 	"github.com/grokloc/grokloc-server/pkg/models"
-	"github.com/grokloc/grokloc-server/pkg/models/admin/user"
 	"go.uber.org/zap"
 )
 

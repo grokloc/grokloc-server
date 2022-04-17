@@ -11,9 +11,9 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/grokloc/grokloc-server/pkg/app"
+	"github.com/grokloc/grokloc-server/pkg/app/admin/org"
+	"github.com/grokloc/grokloc-server/pkg/app/admin/user"
 	"github.com/grokloc/grokloc-server/pkg/env"
-	"github.com/grokloc/grokloc-server/pkg/models/admin/org"
-	"github.com/grokloc/grokloc-server/pkg/models/admin/user"
 	"github.com/grokloc/grokloc-server/pkg/security"
 )
 
