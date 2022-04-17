@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/grokloc/grokloc-server/pkg/app"
 	"github.com/grokloc/grokloc-server/pkg/app/admin/user"
+	"github.com/grokloc/grokloc-server/pkg/grokloc"
 	"github.com/grokloc/grokloc-server/pkg/models"
 	"go.uber.org/zap"
 )
@@ -30,6 +31,7 @@ func Create(
 	// create the owner user
 	// owner user is still unconfirmed, see update status below
 	ownerUser, err := user.Encrypted(
+		ctx,
 		ownerDisplayName,
 		ownerEmail,
 		id,
@@ -38,6 +40,7 @@ func Create(
 	if err != nil {
 		zap.L().Error("org::Create: user::Encrypted",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -47,6 +50,7 @@ func Create(
 	if err != nil {
 		zap.L().Error("org::Create: user::Insert",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -56,6 +60,7 @@ func Create(
 	if err != nil {
 		zap.L().Error("org::Create: UpdateStatus",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -82,6 +87,7 @@ func Create(
 	if err != nil {
 		zap.L().Error("org::Create: Exec",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		if models.UniqueConstraint(err) {
 			return nil, models.ErrConflict
@@ -97,6 +103,7 @@ func Create(
 	if inserted != 1 {
 		zap.L().Error("org::Create: rows affected",
 			zap.Error(models.ErrRowsAffected),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, models.ErrRowsAffected
 	}
@@ -136,6 +143,7 @@ func Read(ctx context.Context, id string, db *sql.DB) (*Org, error) {
 	if err != nil {
 		zap.L().Error("org::Read: QueryRow",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -149,6 +157,7 @@ func Read(ctx context.Context, id string, db *sql.DB) (*Org, error) {
 		// handle migrating different versions, or err
 		zap.L().Error("org::Read: schema version",
 			zap.Error(models.ErrModelMigrate),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, models.ErrModelMigrate
 	}
@@ -180,6 +189,7 @@ func (o *Org) UpdateOwner(ctx context.Context,
 	if err != nil {
 		zap.L().Error("org::UpdateOwner: QueryRow",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return err
 	}
@@ -187,6 +197,7 @@ func (o *Org) UpdateOwner(ctx context.Context,
 	if count != 1 {
 		zap.L().Error("org::UpdateOwner: owner check",
 			zap.Error(models.ErrRelatedUser),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return models.ErrRelatedUser
 	}
@@ -195,6 +206,7 @@ func (o *Org) UpdateOwner(ctx context.Context,
 	if err != nil {
 		zap.L().Error("org::UpdateOwner: Update",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 	} else {
 		o.Owner = owner
@@ -215,6 +227,7 @@ func (o *Org) UpdateStatus(ctx context.Context,
 	if status == models.StatusNone {
 		zap.L().Error("org::UpdateStatus: status",
 			zap.Error(models.ErrDisallowedValue),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return models.ErrDisallowedValue
 	}
@@ -223,6 +236,7 @@ func (o *Org) UpdateStatus(ctx context.Context,
 	if err != nil {
 		zap.L().Error("org::UpdateStatus: Update",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 	} else {
 		o.Meta.Status = status

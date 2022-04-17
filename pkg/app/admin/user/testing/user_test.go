@@ -13,6 +13,7 @@ import (
 	"github.com/grokloc/grokloc-server/pkg/app/admin/user"
 	"github.com/grokloc/grokloc-server/pkg/app/state"
 	"github.com/grokloc/grokloc-server/pkg/env"
+	"github.com/grokloc/grokloc-server/pkg/grokloc"
 	"github.com/grokloc/grokloc-server/pkg/models"
 	"github.com/grokloc/grokloc-server/pkg/security"
 	"github.com/stretchr/testify/require"
@@ -39,7 +40,12 @@ func (s *UserSuite) TestReadUser() {
 	replica := s.st.RandomReplica()
 
 	// State initialization creates an org (and owner user)
-	u, err := user.Read(context.Background(), s.st.RootUser, s.st.DBKey, replica)
+	u, err := user.Read(
+		grokloc.WithRequestID(context.Background()),
+		s.st.RootUser,
+		s.st.DBKey,
+		replica,
+	)
 	require.Nil(s.T(), err)
 	require.Equal(s.T(), s.st.RootUser, u.ID)
 	require.Equal(s.T(), s.st.RootUserAPISecret, u.APISecret)
@@ -50,7 +56,12 @@ func (s *UserSuite) TestReadUser() {
 func (s *UserSuite) TestReadUserMiss() {
 	replica := s.st.RandomReplica()
 
-	_, err := user.Read(context.Background(), uuid.NewString(), s.st.DBKey, replica)
+	_, err := user.Read(
+		grokloc.WithRequestID(context.Background()),
+		uuid.NewString(),
+		s.st.DBKey,
+		replica,
+	)
 	require.Error(s.T(), err)
 	require.Equal(s.T(), sql.ErrNoRows, err)
 }
@@ -60,7 +71,7 @@ func (s *UserSuite) TestUpdateDisplayName() {
 	require.Nil(s.T(), err)
 
 	o, err := org.Create(
-		context.Background(),
+		grokloc.WithRequestID(context.Background()),
 		uuid.NewString(), // org name
 		uuid.NewString(), // org owner display name
 		uuid.NewString(), // org owner email
@@ -71,7 +82,7 @@ func (s *UserSuite) TestUpdateDisplayName() {
 	require.Nil(s.T(), err)
 
 	u, err := user.Read(
-		context.Background(),
+		grokloc.WithRequestID(context.Background()),
 		o.Owner,
 		s.st.DBKey,
 		s.st.RandomReplica(),
@@ -82,7 +93,7 @@ func (s *UserSuite) TestUpdateDisplayName() {
 	newDisplayNameDigest := security.EncodedSHA256(newDisplayName)
 
 	err = u.UpdateDisplayName(
-		context.Background(),
+		grokloc.WithRequestID(context.Background()),
 		newDisplayName,
 		s.st.DBKey,
 		s.st.Master,
@@ -92,7 +103,7 @@ func (s *UserSuite) TestUpdateDisplayName() {
 	require.Equal(s.T(), newDisplayNameDigest, u.DisplayNameDigest)
 
 	u_read, err := user.Read(
-		context.Background(),
+		grokloc.WithRequestID(context.Background()),
 		o.Owner,
 		s.st.DBKey,
 		s.st.RandomReplica(),
@@ -108,7 +119,7 @@ func (s *UserSuite) TestUpdatePassword() {
 	require.Nil(s.T(), err)
 
 	o, err := org.Create(
-		context.Background(),
+		grokloc.WithRequestID(context.Background()),
 		uuid.NewString(), // org name
 		uuid.NewString(), // org owner display name
 		uuid.NewString(), // org owner email
@@ -119,7 +130,7 @@ func (s *UserSuite) TestUpdatePassword() {
 	require.Nil(s.T(), err)
 
 	u, err := user.Read(
-		context.Background(),
+		grokloc.WithRequestID(context.Background()),
 		o.Owner,
 		s.st.DBKey,
 		s.st.RandomReplica(),
@@ -130,7 +141,7 @@ func (s *UserSuite) TestUpdatePassword() {
 	require.Nil(s.T(), err)
 
 	err = u.UpdatePassword(
-		context.Background(),
+		grokloc.WithRequestID(context.Background()),
 		newPassword,
 		s.st.Master,
 	)
@@ -138,7 +149,7 @@ func (s *UserSuite) TestUpdatePassword() {
 	require.Equal(s.T(), newPassword, u.Password)
 
 	u_read, err := user.Read(
-		context.Background(),
+		grokloc.WithRequestID(context.Background()),
 		o.Owner,
 		s.st.DBKey,
 		s.st.RandomReplica(),
@@ -152,7 +163,7 @@ func (s *UserSuite) TestUpdateStatus() {
 	require.Nil(s.T(), err)
 
 	o, err := org.Create(
-		context.Background(),
+		grokloc.WithRequestID(context.Background()),
 		uuid.NewString(), // org name
 		uuid.NewString(), // org owner display name
 		uuid.NewString(), // org owner email
@@ -166,7 +177,7 @@ func (s *UserSuite) TestUpdateStatus() {
 	require.Nil(s.T(), err)
 
 	u, err := user.Create(
-		context.Background(),
+		grokloc.WithRequestID(context.Background()),
 		uuid.NewString(), // display name
 		uuid.NewString(), // email
 		o.ID,
@@ -176,12 +187,16 @@ func (s *UserSuite) TestUpdateStatus() {
 	)
 	require.Nil(s.T(), err)
 
-	err = u.UpdateStatus(context.Background(), models.StatusInactive, s.st.Master)
+	err = u.UpdateStatus(
+		grokloc.WithRequestID(context.Background()),
+		models.StatusInactive,
+		s.st.Master,
+	)
 	require.Nil(s.T(), err)
 	require.Equal(s.T(), models.StatusInactive, u.Meta.Status)
 
 	u_read, err := user.Read(
-		context.Background(),
+		grokloc.WithRequestID(context.Background()),
 		u.ID,
 		s.st.DBKey,
 		s.st.RandomReplica(),

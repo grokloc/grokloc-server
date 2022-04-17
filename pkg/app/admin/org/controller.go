@@ -1,11 +1,42 @@
 package org
 
-import "github.com/grokloc/grokloc-server/pkg/app"
+import (
+	"context"
+
+	"github.com/grokloc/grokloc-server/pkg/app"
+	"go.uber.org/zap"
+)
 
 type Controller struct {
-	st *app.State
+	state *app.State
 }
 
-func NewController(st *app.State) (*Controller, error) {
-	return &Controller{st: st}, nil
+func NewController(state *app.State) (*Controller, error) {
+	return &Controller{state: state}, nil
+}
+
+func (c *Controller) Create(ctx context.Context, event CreateEvent) (*Org, error) {
+
+	defer func() {
+		_ = zap.L().Sync()
+	}()
+
+	org, err := Create(
+		ctx,
+		event.Name,
+		event.OwnerDisplayName,
+		event.OwnerEmail,
+		event.OwnerPassword,
+		c.state.DBKey,
+		c.state.Master,
+	)
+
+	if err != nil {
+		zap.L().Error("org::Controller::Create",
+			zap.Error(err),
+		)
+		return nil, err
+	}
+
+	return org, nil
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/grokloc/grokloc-server/pkg/app"
+	"github.com/grokloc/grokloc-server/pkg/grokloc"
 	"github.com/grokloc/grokloc-server/pkg/models"
 	"github.com/grokloc/grokloc-server/pkg/security"
 	"go.uber.org/zap"
@@ -53,6 +54,7 @@ func (u User) Insert(ctx context.Context, db *sql.DB) error {
 	if err != nil {
 		zap.L().Error("user::Insert: Exec",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		if models.UniqueConstraint(err) {
 			return models.ErrConflict
@@ -68,6 +70,7 @@ func (u User) Insert(ctx context.Context, db *sql.DB) error {
 	if inserted != 1 {
 		zap.L().Error("user::Insert: rows affected",
 			zap.Error(models.ErrRowsAffected),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return models.ErrRowsAffected
 	}
@@ -104,6 +107,7 @@ func Create(
 	if err != nil {
 		zap.L().Error("user::Create: QueryRow",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -111,15 +115,17 @@ func Create(
 	if count != 1 {
 		zap.L().Error("user::Create: org check",
 			zap.Error(models.ErrRelatedOrg),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, models.ErrRelatedOrg
 	}
 
 	// generate encrypted user
-	u, err := Encrypted(displayName, email, org, password, key)
+	u, err := Encrypted(ctx, displayName, email, org, password, key)
 	if err != nil {
 		zap.L().Error("user::Create: Encrypted",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -129,6 +135,7 @@ func Create(
 	if err != nil {
 		zap.L().Error("user::Create: Insert",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -137,6 +144,7 @@ func Create(
 	if err != nil {
 		zap.L().Error("user::Create: Read",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -145,7 +153,10 @@ func Create(
 }
 
 // Encrypted creates a new user that can be inserted
-func Encrypted(displayName, email, org, password string, key []byte) (*User, error) {
+func Encrypted(
+	ctx context.Context,
+	displayName, email, org, password string,
+	key []byte) (*User, error) {
 
 	defer func() {
 		_ = zap.L().Sync()
@@ -155,6 +166,7 @@ func Encrypted(displayName, email, org, password string, key []byte) (*User, err
 		err := errors.New("display_name deemed unsafe")
 		zap.L().Error("user::Encrypted: display name",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -162,6 +174,7 @@ func Encrypted(displayName, email, org, password string, key []byte) (*User, err
 		err := errors.New("email deemed unsafe")
 		zap.L().Error("user::Encrypted: email",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -169,6 +182,7 @@ func Encrypted(displayName, email, org, password string, key []byte) (*User, err
 		err := errors.New("password deemed unsafe")
 		zap.L().Error("user::Encrypted: password",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -180,6 +194,7 @@ func Encrypted(displayName, email, org, password string, key []byte) (*User, err
 	if err != nil {
 		zap.L().Error("user::Encrypted: api secret",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -187,6 +202,7 @@ func Encrypted(displayName, email, org, password string, key []byte) (*User, err
 	if err != nil {
 		zap.L().Error("user::Encrypted: display name",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -194,6 +210,7 @@ func Encrypted(displayName, email, org, password string, key []byte) (*User, err
 	if err != nil {
 		zap.L().Error("user::Encrypted: email",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -262,6 +279,7 @@ func Read(ctx context.Context, id string, key []byte, db *sql.DB) (*User, error)
 	if err != nil {
 		zap.L().Error("user::Read: QueryRow",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -270,6 +288,7 @@ func Read(ctx context.Context, id string, key []byte, db *sql.DB) (*User, error)
 	if err != nil {
 		zap.L().Error("user::Read: api secret",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -278,6 +297,7 @@ func Read(ctx context.Context, id string, key []byte, db *sql.DB) (*User, error)
 	if err != nil {
 		zap.L().Error("user::Read: display name",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -286,6 +306,7 @@ func Read(ctx context.Context, id string, key []byte, db *sql.DB) (*User, error)
 	if err != nil {
 		zap.L().Error("user::Read: email",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -294,6 +315,7 @@ func Read(ctx context.Context, id string, key []byte, db *sql.DB) (*User, error)
 	if err != nil {
 		zap.L().Error("user::Read: status",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
@@ -301,6 +323,7 @@ func Read(ctx context.Context, id string, key []byte, db *sql.DB) (*User, error)
 	if u.Meta.SchemaVersion != Version {
 		zap.L().Error("user::Read: schema version",
 			zap.Error(models.ErrModelMigrate),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		// handle migrating different versions, or err
 		return nil, models.ErrModelMigrate
@@ -323,6 +346,7 @@ func (u *User) UpdateDisplayName(ctx context.Context,
 		err := errors.New("display name malformed")
 		zap.L().Error("user::UpdateDisplayName: display name",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return err
 	}
@@ -332,6 +356,7 @@ func (u *User) UpdateDisplayName(ctx context.Context,
 	if err != nil {
 		zap.L().Error("user::UpdateDisplayName: display name",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return err
 	}
@@ -352,6 +377,7 @@ func (u *User) UpdateDisplayName(ctx context.Context,
 	if err != nil {
 		zap.L().Error("user::UpdateDisplayName: Exec",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return err
 	}
@@ -365,6 +391,7 @@ func (u *User) UpdateDisplayName(ctx context.Context,
 	if updated != 1 {
 		zap.L().Error("user::UpdateDisplayName: rows affected",
 			zap.Error(models.ErrRowsAffected),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return models.ErrRowsAffected
 	}
@@ -389,6 +416,7 @@ func (u *User) UpdatePassword(ctx context.Context,
 		err := errors.New("password malformed")
 		zap.L().Error("user::UpdatePassword: password",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return err
 	}
@@ -397,6 +425,7 @@ func (u *User) UpdatePassword(ctx context.Context,
 	if err != nil {
 		zap.L().Error("user::UpdatePassword: Update",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 	} else {
 		u.Password = password
@@ -417,6 +446,7 @@ func (u *User) UpdateStatus(ctx context.Context,
 	if status == models.StatusNone {
 		zap.L().Error("user::UpdateStatus: status",
 			zap.Error(models.ErrDisallowedValue),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return models.ErrDisallowedValue
 	}
@@ -425,6 +455,7 @@ func (u *User) UpdateStatus(ctx context.Context,
 	if err != nil {
 		zap.L().Error("user::UpdateStatus: status",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 	} else {
 		u.Meta.Status = status
