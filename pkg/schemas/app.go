@@ -91,4 +91,29 @@ begin
         update repositories set mtime = strftime('%s','now')
         where id = new.id;
 end;
+-- STMT
+create table if not exists audit (
+      id text unique not null,
+      code integer not null,
+      note text not null,
+      source text not null,
+      source_id text not null,
+      schema_version integer not null default 0,
+      ctime integer,
+      mtime integer,
+      primary key (id));
+-- STMT
+create trigger if not exists audit_ctime_trigger after insert on audit
+      begin
+      update audit set
+      ctime = strftime('%s','now'),
+      mtime = strftime('%s','now')
+      where id = new.id;
+end;
+-- STMT
+create trigger if not exists audit_mtime_trigger after update on audit
+      begin
+      update audit set mtime = strftime('%s','now')
+      where id = new.id;
+end;
 `
