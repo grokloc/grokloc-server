@@ -14,21 +14,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const Version = 0
-
-type User struct {
-	models.Base
-	APISecret         string `json:"api_secret"`
-	APISecretDigest   string `json:"api_secret_digest"`
-	DisplayName       string `json:"display_name"`
-	DisplayNameDigest string `json:"display_name_digest"`
-	Email             string `json:"email"`
-	EmailDigest       string `json:"email_digest"`
-	Org               string `json:"org"`
-	// Password is assumed initialized as derived
-	Password string `json:"-"`
-}
-
 func (u User) Insert(ctx context.Context, db *sql.DB) error {
 
 	defer func() {
