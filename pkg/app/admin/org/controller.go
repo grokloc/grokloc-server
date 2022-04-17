@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/grokloc/grokloc-server/pkg/app"
+	"github.com/grokloc/grokloc-server/pkg/grokloc"
 	"go.uber.org/zap"
 )
 
@@ -34,6 +35,7 @@ func (c *Controller) Create(ctx context.Context, event CreateEvent) (*Org, error
 	if err != nil {
 		zap.L().Error("org::Controller::Create",
 			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
 		)
 		return nil, err
 	}
