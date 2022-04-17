@@ -5,7 +5,6 @@ package testing
 import (
 	"context"
 	"database/sql"
-	"log"
 	"testing"
 
 	"github.com/google/uuid"
@@ -18,6 +17,7 @@ import (
 	"github.com/grokloc/grokloc-server/pkg/security"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/zap"
 )
 
 type UserSuite struct {
@@ -29,7 +29,9 @@ func (s *UserSuite) SetupTest() {
 	var err error
 	s.st, err = state.New(env.Unit)
 	if err != nil {
-		log.Fatal(err)
+		zap.L().Fatal("setup",
+			zap.Error(err),
+		)
 	}
 }
 

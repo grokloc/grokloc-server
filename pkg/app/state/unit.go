@@ -19,30 +19,47 @@ import (
 
 // Unit builds an instance for the Unit environment
 func Unit() *app.State {
-	db, err := sql.Open("sqlite3", "file::memory:?mode=memory&cache=shared")
+	// set the global logger for the unit env
+	logger, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatal(err)
+	}
+	_ = zap.ReplaceGlobals(logger)
+
+	db, err := sql.Open("sqlite3", "file::memory:?mode=memory&cache=shared")
+	if err != nil {
+		zap.L().Fatal("unit db",
+			zap.Error(err),
+		)
 	}
 	// avoid concurrency bug with the sqlite library
 	db.SetMaxOpenConns(1)
 	_, err = db.Exec(app.Schema)
 	if err != nil {
-		log.Fatal(err)
+		zap.L().Fatal("unit schema",
+			zap.Error(err),
+		)
 	}
 	dbKey, err := security.MakeKey(uuid.NewString())
 	if err != nil {
-		log.Fatal(err)
+		zap.L().Fatal("db key",
+			zap.Error(err),
+		)
 	}
 	tokenKey, err := security.MakeKey(uuid.NewString())
 	if err != nil {
-		log.Fatal(err)
+		zap.L().Fatal("token key",
+			zap.Error(err),
+		)
 	}
 
 	argon2Cfg := argon2.DefaultConfig()
 
 	rootUserPassword, err := security.DerivePassword(uuid.NewString(), argon2Cfg)
 	if err != nil {
-		log.Fatal(err)
+		zap.L().Fatal("root password",
+			zap.Error(err),
+		)
 	}
 
 	rootOrg, err := org.Create(
@@ -55,7 +72,9 @@ func Unit() *app.State {
 		db,
 	)
 	if err != nil {
-		log.Fatal(err)
+		zap.L().Fatal("root org create",
+			zap.Error(err),
+		)
 	}
 
 	rootUser, err := user.Read(
@@ -65,15 +84,10 @@ func Unit() *app.State {
 		db,
 	)
 	if err != nil {
-		log.Fatal(err)
+		zap.L().Fatal("root user create",
+			zap.Error(err),
+		)
 	}
-
-	// set the global logger for the unit env
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-		log.Fatal(err)
-	}
-	_ = zap.ReplaceGlobals(logger)
 
 	return &app.State{
 		Level:             env.Unit,
