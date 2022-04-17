@@ -14,7 +14,6 @@ import (
 	"github.com/grokloc/grokloc-server/pkg/env"
 	"github.com/grokloc/grokloc-server/pkg/models/admin/org"
 	"github.com/grokloc/grokloc-server/pkg/models/admin/user"
-	"github.com/grokloc/grokloc-server/pkg/schemas"
 	"github.com/grokloc/grokloc-server/pkg/security"
 )
 
@@ -26,7 +25,7 @@ func Unit() *app.State {
 	}
 	// avoid concurrency bug with the sqlite library
 	db.SetMaxOpenConns(1)
-	_, err = db.Exec(schemas.App)
+	_, err = db.Exec(app.Schema)
 	if err != nil {
 		log.Fatal(err)
 	}

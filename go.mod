@@ -11,7 +11,6 @@ replace (
 	github.com/grokloc/grokloc-server/pkg/models/admin/org/testing => ./pkg/models/admin/org/testing
 	github.com/grokloc/grokloc-server/pkg/models/admin/user => ./pkg/models/admin/user
 	github.com/grokloc/grokloc-server/pkg/models/admin/user/testing => ./pkg/models/admin/user/testing
-	github.com/grokloc/grokloc-server/pkg/schemas => ./pkg/schemas
 	github.com/grokloc/grokloc-server/pkg/security => ./pkg/security
 	github.com/grokloc/grokloc-server/pkg/state => ./pkg/state
 )

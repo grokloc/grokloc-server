@@ -7,9 +7,9 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/grokloc/grokloc-server/pkg/app"
 	"github.com/grokloc/grokloc-server/pkg/models"
 	"github.com/grokloc/grokloc-server/pkg/models/admin/user"
-	"github.com/grokloc/grokloc-server/pkg/schemas"
 	"go.uber.org/zap"
 )
 
@@ -78,7 +78,7 @@ func Create(
                            schema_version)
                           values
                           ($1,$2,$3,$4,$5)`,
-		schemas.OrgsTableName)
+		app.OrgsTableName)
 
 	result, err := db.ExecContext(ctx,
 		q,
@@ -129,7 +129,7 @@ func Read(ctx context.Context, id string, db *sql.DB) (*Org, error) {
                           schema_version
                           from %s
                           where id = $1`,
-		schemas.OrgsTableName)
+		app.OrgsTableName)
 
 	var statusRaw int
 	o := &Org{}
@@ -182,7 +182,7 @@ func (o *Org) UpdateOwner(ctx context.Context,
                            and
                           org = $2
                            and
-                          status = $3`, schemas.UsersTableName)
+                          status = $3`, app.UsersTableName)
 
 	var count int
 	err := db.QueryRowContext(ctx, q, owner, o.ID, models.StatusActive).Scan(&count)
@@ -200,7 +200,7 @@ func (o *Org) UpdateOwner(ctx context.Context,
 		return models.ErrRelatedUser
 	}
 
-	err = models.Update(ctx, schemas.OrgsTableName, o.ID, "owner", owner, db)
+	err = models.Update(ctx, app.OrgsTableName, o.ID, "owner", owner, db)
 	if err != nil {
 		zap.L().Error("org::UpdateOwner: Update",
 			zap.Error(err),
@@ -228,7 +228,7 @@ func (o *Org) UpdateStatus(ctx context.Context,
 		return models.ErrDisallowedValue
 	}
 
-	err := models.Update(ctx, schemas.OrgsTableName, o.ID, "status", status, db)
+	err := models.Update(ctx, app.OrgsTableName, o.ID, "status", status, db)
 	if err != nil {
 		zap.L().Error("org::UpdateStatus: Update",
 			zap.Error(err),

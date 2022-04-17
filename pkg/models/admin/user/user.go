@@ -8,8 +8,8 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/grokloc/grokloc-server/pkg/app"
 	"github.com/grokloc/grokloc-server/pkg/models"
-	"github.com/grokloc/grokloc-server/pkg/schemas"
 	"github.com/grokloc/grokloc-server/pkg/security"
 	"go.uber.org/zap"
 )
@@ -49,7 +49,7 @@ func (u User) Insert(ctx context.Context, db *sql.DB) error {
                            schema_version)
                           values
                           ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-		schemas.UsersTableName)
+		app.UsersTableName)
 
 	result, err := db.ExecContext(ctx,
 		q,
@@ -112,7 +112,7 @@ func Create(
                             id = $1
                           and
                             status = $2`,
-		schemas.OrgsTableName)
+		app.OrgsTableName)
 
 	var count int
 	err := db.QueryRowContext(ctx, q, org, models.StatusActive).Scan(&count)
@@ -254,7 +254,7 @@ func Read(ctx context.Context, id string, key []byte, db *sql.DB) (*User, error)
                           schema_version
                           from %s
                           where id = $1`,
-		schemas.UsersTableName)
+		app.UsersTableName)
 
 	var statusRaw int
 	u := &User{}
@@ -408,7 +408,7 @@ func (u *User) UpdatePassword(ctx context.Context,
 		return err
 	}
 
-	err := models.Update(ctx, schemas.UsersTableName, u.ID, "password", password, db)
+	err := models.Update(ctx, app.UsersTableName, u.ID, "password", password, db)
 	if err != nil {
 		zap.L().Error("user::UpdatePassword: Update",
 			zap.Error(err),
@@ -436,7 +436,7 @@ func (u *User) UpdateStatus(ctx context.Context,
 		return models.ErrDisallowedValue
 	}
 
-	err := models.Update(ctx, schemas.UsersTableName, u.ID, "status", status, db)
+	err := models.Update(ctx, app.UsersTableName, u.ID, "status", status, db)
 	if err != nil {
 		zap.L().Error("user::UpdateStatus: status",
 			zap.Error(err),

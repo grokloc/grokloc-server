@@ -1,12 +1,12 @@
-// Package schemas has table definitions
-package schemas
+package app
 
 const OrgsTableName = "orgs"
 const UsersTableName = "users"
 const RepositoriesTableName = "repositories"
+const AuditTableName = "audit"
 
-// App is the full schema to recreate the app db
-const App = `
+// Schema is the full schema to recreate the app db
+const Schema = `
 create table if not exists users (
        api_secret text unique not null,
        api_secret_digest text unique not null,
