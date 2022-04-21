@@ -10,6 +10,7 @@ replace (
 	github.com/grokloc/grokloc-server/pkg/app/admin/user => ./pkg/app/admin/user
 	github.com/grokloc/grokloc-server/pkg/app/admin/user/testing => ./pkg/app/admin/user/testing
 	github.com/grokloc/grokloc-server/pkg/app/audit => ./pkg/app/audit
+	github.com/grokloc/grokloc-server/pkg/app/audit/testing => ./pkg/app/audit/testing
 	github.com/grokloc/grokloc-server/pkg/app/state => ./pkg/app/state
 	github.com/grokloc/grokloc-server/pkg/env => ./pkg/env
 	github.com/grokloc/grokloc-server/pkg/grokloc => ./pkg/grokloc

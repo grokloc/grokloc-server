@@ -1,4 +1,6 @@
-package audit
+// Package testing provides tests for the audit package
+// (broken out to break import cycles)
+package testing
 
 import (
 	"context"
@@ -6,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/grokloc/grokloc-server/pkg/app"
+	"github.com/grokloc/grokloc-server/pkg/app/audit"
 	"github.com/grokloc/grokloc-server/pkg/app/state"
 	"github.com/grokloc/grokloc-server/pkg/env"
 	"github.com/grokloc/grokloc-server/pkg/grokloc"
@@ -30,9 +33,9 @@ func (s *AuditSuite) SetupTest() {
 }
 
 func (s *AuditSuite) TestInsert() {
-	err := Insert(
+	err := audit.Insert(
 		grokloc.WithRequestID(context.Background()),
-		USER_INSERT,
+		audit.USER_INSERT,
 		uuid.NewString(),
 		uuid.NewString(),
 		uuid.NewString(),

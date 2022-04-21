@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/grokloc/grokloc-server/pkg/app"
 	"github.com/grokloc/grokloc-server/pkg/app/admin/user"
+	"github.com/grokloc/grokloc-server/pkg/app/audit"
 	"github.com/grokloc/grokloc-server/pkg/grokloc"
 	"github.com/grokloc/grokloc-server/pkg/models"
 	"go.uber.org/zap"
@@ -107,6 +108,8 @@ func Create(
 		)
 		return nil, models.ErrRowsAffected
 	}
+
+	_ = audit.Insert(ctx, audit.ORG_INSERT, "", app.OrgsTableName, id, db)
 
 	// read back to get ctime, mtime
 	return Read(ctx, id, db)
