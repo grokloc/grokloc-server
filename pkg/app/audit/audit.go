@@ -18,6 +18,7 @@ const (
 	ORG_OWNER         int = 101
 	USER_INSERT       int = 200
 	USER_DISPLAY_NAME int = 201
+	USER_PASSWORD     int = 202
 )
 
 func Insert(
