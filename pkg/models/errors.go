@@ -27,3 +27,6 @@ var ErrDisallowedValue error = errors.New("value disallowed in this context")
 func UniqueConstraint(err error) bool {
 	return strings.Contains(strings.ToLower(err.Error()), "unique")
 }
+
+// ErrUnsafeString signals bad string input
+var ErrUnsafeString error = errors.New("string deemed unsafe")

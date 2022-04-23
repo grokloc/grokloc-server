@@ -4,7 +4,6 @@ package user
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -165,33 +164,6 @@ func Encrypted(
 		_ = zap.L().Sync()
 	}()
 
-	if !security.SafeStr(displayName) {
-		err := errors.New("display_name deemed unsafe")
-		zap.L().Error("user::Encrypted: display name",
-			zap.Error(err),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
-		return nil, err
-	}
-	if !security.SafeStr(email) {
-		err := errors.New("email deemed unsafe")
-		zap.L().Error("user::Encrypted: email",
-			zap.Error(err),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
-		return nil, err
-	}
-	if !security.SafeStr(password) {
-		err := errors.New("password deemed unsafe")
-		zap.L().Error("user::Encrypted: password",
-			zap.Error(err),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
-		return nil, err
-	}
-
-	// org will be checked in the db, password assumed derived
-
 	apiSecret := uuid.NewString()
 	apiSecretEncrypted, err := security.Encrypt(apiSecret, key)
 	if err != nil {
@@ -345,15 +317,6 @@ func (u *User) UpdateDisplayName(ctx context.Context,
 		_ = zap.L().Sync()
 	}()
 
-	if !security.SafeStr(displayName) {
-		err := errors.New("display name malformed")
-		zap.L().Error("user::UpdateDisplayName: display name",
-			zap.Error(err),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
-		return err
-	}
-
 	// both the display name and the digest must be reset
 	encryptedDisplayName, err := security.Encrypt(displayName, key)
 	if err != nil {
@@ -416,15 +379,6 @@ func (u *User) UpdatePassword(ctx context.Context,
 	defer func() {
 		_ = zap.L().Sync()
 	}()
-
-	if !security.SafeStr(password) {
-		err := errors.New("password malformed")
-		zap.L().Error("user::UpdatePassword: password",
-			zap.Error(err),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
-		return err
-	}
 
 	err := models.Update(ctx, app.UsersTableName, u.ID, "password", password, db)
 	if err != nil {
