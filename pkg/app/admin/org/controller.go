@@ -12,7 +12,7 @@ type Controller struct {
 	state *app.State
 }
 
-func NewController(state *app.State) (*Controller, error) {
+func NewController(ctx context.Context, state *app.State) (*Controller, error) {
 	return &Controller{state: state}, nil
 }
 
@@ -41,4 +41,13 @@ func (c *Controller) Create(ctx context.Context, event CreateEvent) (*Org, error
 	}
 
 	return org, nil
+}
+
+func (c *Controller) Read(ctx context.Context, id string) (*Org, error) {
+
+	defer func() {
+		_ = zap.L().Sync()
+	}()
+
+	return Read(ctx, id, c.state.RandomReplica())
 }

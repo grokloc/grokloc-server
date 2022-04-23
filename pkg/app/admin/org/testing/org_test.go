@@ -210,6 +210,30 @@ func (s *OrgSuite) TestUpdateOwnerMissing() {
 	require.Equal(s.T(), models.ErrRelatedUser, err)
 }
 
+func (s *OrgSuite) TestCreateEvent() {
+	ctx := grokloc.WithRequestID(context.Background())
+	c, err := org.NewController(ctx, s.st)
+	require.Nil(s.T(), err)
+
+	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
+	require.Nil(s.T(), err)
+
+	event, err := org.NewCreateEvent(
+		ctx,
+		uuid.NewString(), // org name
+		uuid.NewString(), // org owner display name
+		uuid.NewString(), // org owner email
+		ownerPassword,
+	)
+	require.Nil(s.T(), err)
+
+	o, err := c.Create(ctx, *event)
+	require.Nil(s.T(), err)
+
+	_, err = c.Read(ctx, o.ID)
+	require.Nil(s.T(), err)
+}
+
 func TestOrgSuite(t *testing.T) {
 	suite.Run(t, new(OrgSuite))
 }
