@@ -228,7 +228,8 @@ func (o *Org) UpdateStatus(ctx context.Context,
 		_ = zap.L().Sync()
 	}()
 
-	if status == models.StatusNone {
+	// unconfirmed can only be an initial state
+	if status == models.StatusNone || status == models.StatusUnconfirmed {
 		zap.L().Error("org::UpdateStatus: status",
 			zap.Error(models.ErrDisallowedValue),
 			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),

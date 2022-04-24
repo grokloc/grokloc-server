@@ -234,6 +234,8 @@ func (s *OrgSuite) TestCreateEvent() {
 	require.Nil(s.T(), err)
 }
 
+// TestUpdateOwner requires a user create event (and test)
+
 func TestOrgSuite(t *testing.T) {
 	suite.Run(t, new(OrgSuite))
 }

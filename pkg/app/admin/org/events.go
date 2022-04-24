@@ -55,3 +55,39 @@ func NewCreateEvent(
 		OwnerPassword:    ownerPassword,
 	}, nil
 }
+
+type UpdateOwnerEvent struct {
+	ID    string `json:"id"`
+	Owner string `json:"owner"`
+}
+
+func NewUpdateOwner(
+	ctx context.Context,
+	id string,
+	owner string,
+	ownerPassword string) (*UpdateOwnerEvent, error) {
+
+	defer func() {
+		_ = zap.L().Sync()
+	}()
+
+	args := map[string]string{
+		"id":    id,
+		"owner": owner,
+	}
+
+	for k, v := range args {
+		if !security.SafeStr(v) {
+			zap.L().Info(fmt.Sprintf("%s unsafe", k),
+				zap.Error(models.ErrUnsafeString),
+				zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
+			)
+			return nil, models.ErrUnsafeString
+		}
+	}
+
+	return &UpdateOwnerEvent{
+		ID:    id,
+		Owner: owner,
+	}, nil
+}

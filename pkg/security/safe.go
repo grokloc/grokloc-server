@@ -15,5 +15,9 @@ func SafeStr(s string) bool {
 	if htmlRE.MatchString(s) {
 		return false
 	}
+	wsRE := regexp.MustCompile(`[\n\t\r]`)
+	if wsRE.MatchString(s) {
+		return false
+	}
 	return len(s) != 0 && len(s) <= 8192 && !strings.ContainsAny(s, "'\"`<>")
 }

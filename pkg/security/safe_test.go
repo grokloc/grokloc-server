@@ -35,6 +35,11 @@ func (s *SafeSuite) TestSafeStr() {
 	require.False(s.T(), SafeStr("&gt;"))
 	require.False(s.T(), SafeStr("&lt;"))
 	require.False(s.T(), SafeStr("window.onload"))
+	require.False(s.T(), SafeStr(`
+                                      multi
+                                      line
+                                     `))
+	require.False(s.T(), SafeStr("\thello\t"))
 }
 
 func TestSafeSuite(t *testing.T) {
