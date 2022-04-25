@@ -23,6 +23,9 @@ var ErrModelMigrate error = errors.New("schema version error; cannot migrate mod
 // ErrDisallowedValue signals a value of the right type, just not allowed
 var ErrDisallowedValue error = errors.New("value disallowed in this context")
 
+// ErrStatus signals a problem with a staatus field
+var ErrStatus error = errors.New("malformed or disallowed status")
+
 // UniqueConstraint will try to match the db unique constraint violation
 func UniqueConstraint(err error) bool {
 	return strings.Contains(strings.ToLower(err.Error()), "unique")

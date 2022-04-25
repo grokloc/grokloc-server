@@ -79,3 +79,31 @@ func (c *Controller) UpdateOwner(ctx context.Context, event UpdateOwnerEvent) (*
 
 	return org, nil
 }
+
+func (c *Controller) UpdateStatus(ctx context.Context, event UpdateStatusEvent) (*Org, error) {
+
+	defer func() {
+		_ = zap.L().Sync()
+	}()
+
+	org, err := c.Read(ctx, event.ID)
+
+	if err != nil {
+		zap.L().Error("org::Controller::UpdateStatus",
+			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
+		)
+		return nil, err
+	}
+
+	err = org.UpdateStatus(ctx, event.Status, c.state.Master)
+	if err != nil {
+		zap.L().Error("org::Controller::UpdateStatus",
+			zap.Error(err),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
+		)
+		return nil, err
+	}
+
+	return org, nil
+}

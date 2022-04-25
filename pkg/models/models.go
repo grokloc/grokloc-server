@@ -4,7 +4,6 @@ package models
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 )
 
@@ -29,7 +28,7 @@ func NewStatus(status int) (Status, error) {
 	case 3:
 		return StatusInactive, nil
 	default:
-		return StatusNone, errors.New("unknown status")
+		return StatusNone, ErrStatus
 	}
 }
 

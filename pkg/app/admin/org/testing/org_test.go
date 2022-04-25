@@ -236,6 +236,54 @@ func (s *OrgSuite) TestCreateEvent() {
 
 // TestUpdateOwner requires a user create event (and test)
 
+func (s *OrgSuite) TestUpdateStatusEvent() {
+	ctx := grokloc.WithRequestID(context.Background())
+	c, err := org.NewController(ctx, s.st)
+	require.Nil(s.T(), err)
+
+	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
+	require.Nil(s.T(), err)
+
+	createEvent, err := org.NewCreateEvent(
+		ctx,
+		uuid.NewString(), // org name
+		uuid.NewString(), // org owner display name
+		uuid.NewString(), // org owner email
+		ownerPassword,
+	)
+	require.Nil(s.T(), err)
+
+	o, err := c.Create(ctx, *createEvent)
+	require.Nil(s.T(), err)
+
+	_, err = org.NewUpdateStatusEvent(
+		ctx,
+		o.ID,
+		999, // not a valid status int
+	)
+	require.NotNil(s.T(), err)
+	require.Equal(s.T(), models.ErrDisallowedValue, err)
+
+	_, err = org.NewUpdateStatusEvent(
+		ctx,
+		o.ID,
+		int(models.StatusUnconfirmed), // unconfirmed not allowed as a set status
+	)
+	require.NotNil(s.T(), err)
+	require.Equal(s.T(), models.ErrStatus, err)
+
+	updateStatusEvent, err := org.NewUpdateStatusEvent(
+		ctx,
+		o.ID,
+		int(models.StatusInactive),
+	)
+	require.Nil(s.T(), err)
+
+	oUpdate, err := c.UpdateStatus(ctx, *updateStatusEvent)
+	require.Nil(s.T(), err)
+	require.Equal(s.T(), models.StatusInactive, oUpdate.Meta.Status)
+}
+
 func TestOrgSuite(t *testing.T) {
 	suite.Run(t, new(OrgSuite))
 }

@@ -91,3 +91,54 @@ func NewUpdateOwner(
 		Owner: owner,
 	}, nil
 }
+
+type UpdateStatusEvent struct {
+	ID     string        `json:"id"`
+	Status models.Status `json:"status"`
+}
+
+func NewUpdateStatusEvent(
+	ctx context.Context,
+	id string,
+	statusInt int) (*UpdateStatusEvent, error) {
+
+	defer func() {
+		_ = zap.L().Sync()
+	}()
+
+	args := map[string]string{
+		"id": id,
+	}
+
+	for k, v := range args {
+		if !security.SafeStr(v) {
+			zap.L().Info(fmt.Sprintf("%s unsafe", k),
+				zap.Error(models.ErrUnsafeString),
+				zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
+			)
+			return nil, models.ErrUnsafeString
+		}
+	}
+
+	status, err := models.NewStatus(statusInt)
+	if err != nil {
+		zap.L().Info(fmt.Sprintf("%v not acceptable status", statusInt),
+			zap.Error(models.ErrDisallowedValue),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
+		)
+		return nil, models.ErrDisallowedValue
+	}
+
+	if status == models.StatusUnconfirmed {
+		zap.L().Info("cannot set existing row to unconfirmed",
+			zap.Error(models.ErrStatus),
+			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
+		)
+		return nil, models.ErrStatus
+	}
+
+	return &UpdateStatusEvent{
+		ID:     id,
+		Status: status,
+	}, nil
+}
