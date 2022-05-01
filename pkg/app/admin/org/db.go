@@ -109,7 +109,7 @@ func Create(
 		return nil, models.ErrRowsAffected
 	}
 
-	_ = audit.Insert(ctx, audit.ORG_INSERT, "", app.OrgsTableName, id, db)
+	_ = audit.Insert(ctx, audit.ORG_INSERT, app.OrgsTableName, id, db)
 
 	// read back to get ctime, mtime
 	return Read(ctx, id, db)
@@ -213,7 +213,7 @@ func (o *Org) UpdateOwner(ctx context.Context,
 		)
 	} else {
 		o.Owner = owner
-		_ = audit.Insert(ctx, audit.ORG_OWNER, "", app.OrgsTableName, o.ID, db)
+		_ = audit.Insert(ctx, audit.ORG_OWNER, app.OrgsTableName, o.ID, db)
 	}
 
 	return err
@@ -245,7 +245,7 @@ func (o *Org) UpdateStatus(ctx context.Context,
 		)
 	} else {
 		o.Meta.Status = status
-		_ = audit.Insert(ctx, audit.STATUS, "", app.OrgsTableName, o.ID, db)
+		_ = audit.Insert(ctx, audit.STATUS, app.OrgsTableName, o.ID, db)
 	}
 
 	return err

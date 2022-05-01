@@ -38,7 +38,6 @@ func (s *AuditSuite) TestInsert() {
 		audit.USER_INSERT,
 		uuid.NewString(),
 		uuid.NewString(),
-		uuid.NewString(),
 		s.st.Master,
 	)
 	require.Nil(s.T(), err)

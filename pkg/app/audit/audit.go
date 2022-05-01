@@ -24,7 +24,7 @@ const (
 func Insert(
 	ctx context.Context,
 	code int,
-	note, source, source_id string,
+	source, source_id string,
 	db *sql.DB) error {
 
 	defer func() {
@@ -34,18 +34,16 @@ func Insert(
 	q := fmt.Sprintf(`insert into %s
                           (id,
                            code,
-                           note,
                            source,
                            source_id)
                           values
-                          ($1,$2,$3,$4,$5)`,
+                          ($1,$2,$3,$4)`,
 		app.AuditTableName)
 
 	result, err := db.ExecContext(ctx,
 		q,
 		uuid.NewString(),
 		code,
-		note,
 		source,
 		source_id)
 

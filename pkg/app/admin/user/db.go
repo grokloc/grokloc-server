@@ -75,7 +75,7 @@ func (u User) Insert(ctx context.Context, db *sql.DB) error {
 		return models.ErrRowsAffected
 	}
 
-	_ = audit.Insert(ctx, audit.USER_INSERT, "", app.UsersTableName, u.ID, db)
+	_ = audit.Insert(ctx, audit.USER_INSERT, app.UsersTableName, u.ID, db)
 
 	return nil
 }
@@ -365,7 +365,7 @@ func (u *User) UpdateDisplayName(ctx context.Context,
 	u.DisplayName = displayName
 	u.DisplayNameDigest = displayNameDigest
 
-	_ = audit.Insert(ctx, audit.USER_DISPLAY_NAME, "", app.UsersTableName, u.ID, db)
+	_ = audit.Insert(ctx, audit.USER_DISPLAY_NAME, app.UsersTableName, u.ID, db)
 
 	return nil
 }
@@ -388,7 +388,7 @@ func (u *User) UpdatePassword(ctx context.Context,
 		)
 	} else {
 		u.Password = password
-		_ = audit.Insert(ctx, audit.USER_PASSWORD, "", app.UsersTableName, u.ID, db)
+		_ = audit.Insert(ctx, audit.USER_PASSWORD, app.UsersTableName, u.ID, db)
 	}
 
 	return err
@@ -420,7 +420,7 @@ func (u *User) UpdateStatus(ctx context.Context,
 		)
 	} else {
 		u.Meta.Status = status
-		_ = audit.Insert(ctx, audit.STATUS, "", app.UsersTableName, u.ID, db)
+		_ = audit.Insert(ctx, audit.STATUS, app.UsersTableName, u.ID, db)
 	}
 
 	return err

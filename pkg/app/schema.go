@@ -95,7 +95,6 @@ end;
 create table if not exists audit (
       id text unique not null,
       code integer not null,
-      note text not null,
       source text not null,
       source_id text not null,
       schema_version integer not null default 0,
