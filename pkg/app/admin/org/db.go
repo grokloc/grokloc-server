@@ -9,9 +9,7 @@ import (
 	"github.com/grokloc/grokloc-server/pkg/app"
 	"github.com/grokloc/grokloc-server/pkg/app/admin/user"
 	"github.com/grokloc/grokloc-server/pkg/app/audit"
-	"github.com/grokloc/grokloc-server/pkg/grokloc"
 	"github.com/grokloc/grokloc-server/pkg/models"
-	"go.uber.org/zap"
 )
 
 // Create instantiates a new owner, inserts it, and inserts a new org
@@ -21,10 +19,6 @@ func Create(
 	name, ownerDisplayName, ownerEmail, ownerPassword string,
 	key []byte,
 	db *sql.DB) (*Org, error) {
-
-	defer func() {
-		_ = zap.L().Sync()
-	}()
 
 	// generate org id
 	id := uuid.NewString()
@@ -39,30 +33,18 @@ func Create(
 		ownerPassword,
 		key)
 	if err != nil {
-		zap.L().Error("org::Create: user::Encrypted",
-			zap.Error(err),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
 		return nil, err
 	}
 
 	// insert owner user
 	err = ownerUser.Insert(ctx, db)
 	if err != nil {
-		zap.L().Error("org::Create: user::Insert",
-			zap.Error(err),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
 		return nil, err
 	}
 
 	// make active
 	err = ownerUser.UpdateStatus(ctx, models.StatusActive, db)
 	if err != nil {
-		zap.L().Error("org::Create: UpdateStatus",
-			zap.Error(err),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
 		return nil, err
 	}
 
@@ -86,10 +68,6 @@ func Create(
 		Version)
 
 	if err != nil {
-		zap.L().Error("org::Create: Exec",
-			zap.Error(err),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
 		if models.UniqueConstraint(err) {
 			return nil, models.ErrConflict
 		}
@@ -102,10 +80,6 @@ func Create(
 		panic("cannot exec RowsAffected:" + err.Error())
 	}
 	if inserted != 1 {
-		zap.L().Error("org::Create: rows affected",
-			zap.Error(models.ErrRowsAffected),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
 		return nil, models.ErrRowsAffected
 	}
 
@@ -116,10 +90,6 @@ func Create(
 }
 
 func Read(ctx context.Context, id string, db *sql.DB) (*Org, error) {
-
-	defer func() {
-		_ = zap.L().Sync()
-	}()
 
 	q := fmt.Sprintf(`select
                           name,
@@ -144,10 +114,6 @@ func Read(ctx context.Context, id string, db *sql.DB) (*Org, error) {
 		&statusRaw,
 		&o.Meta.SchemaVersion)
 	if err != nil {
-		zap.L().Error("org::Read: QueryRow",
-			zap.Error(err),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
 		return nil, err
 	}
 
@@ -158,10 +124,6 @@ func Read(ctx context.Context, id string, db *sql.DB) (*Org, error) {
 
 	if o.Meta.SchemaVersion != Version {
 		// handle migrating different versions, or err
-		zap.L().Error("org::Read: schema version",
-			zap.Error(models.ErrModelMigrate),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
 		return nil, models.ErrModelMigrate
 	}
 
@@ -173,10 +135,6 @@ func Read(ctx context.Context, id string, db *sql.DB) (*Org, error) {
 func (o *Org) UpdateOwner(ctx context.Context,
 	owner string,
 	db *sql.DB) error {
-
-	defer func() {
-		_ = zap.L().Sync()
-	}()
 
 	q := fmt.Sprintf(`select count(*)
                           from %s
@@ -190,28 +148,15 @@ func (o *Org) UpdateOwner(ctx context.Context,
 	var count int
 	err := db.QueryRowContext(ctx, q, owner, o.ID, models.StatusActive).Scan(&count)
 	if err != nil {
-		zap.L().Error("org::UpdateOwner: QueryRow",
-			zap.Error(err),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
 		return err
 	}
 
 	if count != 1 {
-		zap.L().Error("org::UpdateOwner: owner check",
-			zap.Error(models.ErrRelatedUser),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
 		return models.ErrRelatedUser
 	}
 
 	err = models.Update(ctx, app.OrgsTableName, o.ID, "owner", owner, db)
-	if err != nil {
-		zap.L().Error("org::UpdateOwner: Update",
-			zap.Error(err),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
-	} else {
+	if err == nil {
 		o.Owner = owner
 		_ = audit.Insert(ctx, audit.ORG_OWNER, app.OrgsTableName, o.ID, db)
 	}
@@ -224,26 +169,13 @@ func (o *Org) UpdateStatus(ctx context.Context,
 	status models.Status,
 	db *sql.DB) error {
 
-	defer func() {
-		_ = zap.L().Sync()
-	}()
-
 	// unconfirmed can only be an initial state
 	if status == models.StatusNone || status == models.StatusUnconfirmed {
-		zap.L().Error("org::UpdateStatus: status",
-			zap.Error(models.ErrDisallowedValue),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
 		return models.ErrDisallowedValue
 	}
 
 	err := models.Update(ctx, app.OrgsTableName, o.ID, "status", status, db)
-	if err != nil {
-		zap.L().Error("org::UpdateStatus: Update",
-			zap.Error(err),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
-	} else {
+	if err == nil {
 		o.Meta.Status = status
 		_ = audit.Insert(ctx, audit.STATUS, app.OrgsTableName, o.ID, db)
 	}

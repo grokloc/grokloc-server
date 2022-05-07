@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/grokloc/grokloc-server/pkg/app"
 	"github.com/grokloc/grokloc-server/pkg/models"
-	"go.uber.org/zap"
 )
 
 const (
@@ -26,10 +25,6 @@ func Insert(
 	code int,
 	source, source_id string,
 	db *sql.DB) error {
-
-	defer func() {
-		_ = zap.L().Sync()
-	}()
 
 	q := fmt.Sprintf(`insert into %s
                           (id,
@@ -48,12 +43,6 @@ func Insert(
 		source_id)
 
 	if err != nil {
-		zap.L().Error("audit::Insert: Exec",
-			zap.Error(err),
-			zap.Int("code", code),
-			zap.String("source", source),
-			zap.String("source_id", source_id),
-		)
 		return err
 	}
 
@@ -63,12 +52,6 @@ func Insert(
 		panic("cannot exec RowsAffected:" + err.Error())
 	}
 	if inserted != 1 {
-		zap.L().Error("audit::Insert: rows affected",
-			zap.Error(models.ErrRowsAffected),
-			zap.Int("code", code),
-			zap.String("source", source),
-			zap.String("source_id", source_id),
-		)
 		return models.ErrRowsAffected
 	}
 
