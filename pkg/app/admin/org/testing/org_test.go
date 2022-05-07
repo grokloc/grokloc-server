@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/grokloc/grokloc-server/pkg/app"
 	"github.com/grokloc/grokloc-server/pkg/app/admin/org"
+	"github.com/grokloc/grokloc-server/pkg/app/admin/org/events"
 	"github.com/grokloc/grokloc-server/pkg/app/admin/user"
 	"github.com/grokloc/grokloc-server/pkg/app/state"
 	"github.com/grokloc/grokloc-server/pkg/env"
@@ -218,7 +219,7 @@ func (s *OrgSuite) TestCreateEvent() {
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
-	event, err := org.NewCreateEvent(
+	event, err := events.NewCreate(
 		ctx,
 		uuid.NewString(), // org name
 		uuid.NewString(), // org owner display name
@@ -244,7 +245,7 @@ func (s *OrgSuite) TestUpdateStatusEvent() {
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
-	createEvent, err := org.NewCreateEvent(
+	createEvent, err := events.NewCreate(
 		ctx,
 		uuid.NewString(), // org name
 		uuid.NewString(), // org owner display name
@@ -256,7 +257,7 @@ func (s *OrgSuite) TestUpdateStatusEvent() {
 	o, err := c.Create(ctx, *createEvent)
 	require.Nil(s.T(), err)
 
-	_, err = org.NewUpdateStatusEvent(
+	_, err = events.NewUpdateStatus(
 		ctx,
 		o.ID,
 		999, // not a valid status int
@@ -264,7 +265,7 @@ func (s *OrgSuite) TestUpdateStatusEvent() {
 	require.NotNil(s.T(), err)
 	require.Equal(s.T(), models.ErrDisallowedValue, err)
 
-	_, err = org.NewUpdateStatusEvent(
+	_, err = events.NewUpdateStatus(
 		ctx,
 		o.ID,
 		int(models.StatusUnconfirmed), // unconfirmed not allowed as a set status
@@ -272,7 +273,7 @@ func (s *OrgSuite) TestUpdateStatusEvent() {
 	require.NotNil(s.T(), err)
 	require.Equal(s.T(), models.ErrStatus, err)
 
-	updateStatusEvent, err := org.NewUpdateStatusEvent(
+	updateStatusEvent, err := events.NewUpdateStatus(
 		ctx,
 		o.ID,
 		int(models.StatusInactive),
