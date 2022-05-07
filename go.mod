@@ -15,6 +15,7 @@ replace (
 	github.com/grokloc/grokloc-server/pkg/env => ./pkg/env
 	github.com/grokloc/grokloc-server/pkg/grokloc => ./pkg/grokloc
 	github.com/grokloc/grokloc-server/pkg/models => ./pkg/models
+	github.com/grokloc/grokloc-server/pkg/safe => ./pkg/safe
 	github.com/grokloc/grokloc-server/pkg/security => ./pkg/security
 )
 
