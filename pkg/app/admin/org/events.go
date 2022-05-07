@@ -2,12 +2,10 @@ package org
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 
-	"github.com/grokloc/grokloc-server/pkg/grokloc"
 	"github.com/grokloc/grokloc-server/pkg/models"
-	"github.com/grokloc/grokloc-server/pkg/security"
-	"go.uber.org/zap"
+	"github.com/grokloc/grokloc-server/pkg/safe"
 )
 
 // events are defined for mutations, with constructors to validate
@@ -21,6 +19,36 @@ type CreateEvent struct {
 	OwnerPassword string `json:"owner_password"`
 }
 
+func (ce *CreateEvent) UnmarshalJSON(bs []byte) error {
+	// clone type CreateEvent for a default unmarshal
+	type createEvent_ CreateEvent
+	var ce_ createEvent_
+	err := json.Unmarshal(bs, &ce_)
+	if err != nil {
+		return err
+	}
+
+	// use the fields from the default unmarshal to try to
+	// construct a CreateEvent
+	nce, err := NewCreateEvent(
+		context.Background(),
+		ce_.Name,
+		ce_.OwnerDisplayName,
+		ce_.OwnerEmail,
+		ce_.OwnerPassword,
+	)
+	if err != nil {
+		return nil
+	}
+
+	// all fields are safe, assign to ce
+	ce.Name = nce.Name
+	ce.OwnerDisplayName = nce.OwnerDisplayName
+	ce.OwnerEmail = nce.OwnerEmail
+	ce.OwnerPassword = nce.OwnerPassword
+	return nil
+}
+
 func NewCreateEvent(
 	ctx context.Context,
 	name,
@@ -28,24 +56,24 @@ func NewCreateEvent(
 	ownerEmail,
 	ownerPassword string) (*CreateEvent, error) {
 
-	defer func() {
-		_ = zap.L().Sync()
-	}()
-
-	args := map[string]string{
-		"owner display name": ownerDisplayName,
-		"owner email":        ownerEmail,
-		"owner password":     ownerPassword,
+	nameErr := safe.StringIs(name)
+	if nameErr != nil {
+		return nil, nameErr
 	}
 
-	for k, v := range args {
-		if !security.SafeStr(v) {
-			zap.L().Info(fmt.Sprintf("%s unsafe", k),
-				zap.Error(models.ErrUnsafeString),
-				zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-			)
-			return nil, models.ErrUnsafeString
-		}
+	ownerDisplayNameErr := safe.StringIs(ownerDisplayName)
+	if ownerDisplayNameErr != nil {
+		return nil, ownerDisplayNameErr
+	}
+
+	ownerEmailErr := safe.StringIs(ownerEmail)
+	if ownerEmailErr != nil {
+		return nil, ownerEmailErr
+	}
+
+	ownerPasswordErr := safe.StringIs(ownerPassword)
+	if ownerPasswordErr != nil {
+		return nil, ownerPasswordErr
 	}
 
 	return &CreateEvent{
@@ -67,23 +95,14 @@ func NewUpdateOwner(
 	owner string,
 	ownerPassword string) (*UpdateOwnerEvent, error) {
 
-	defer func() {
-		_ = zap.L().Sync()
-	}()
-
-	args := map[string]string{
-		"id":    id,
-		"owner": owner,
+	idErr := safe.StringIs(id)
+	if idErr != nil {
+		return nil, idErr
 	}
 
-	for k, v := range args {
-		if !security.SafeStr(v) {
-			zap.L().Info(fmt.Sprintf("%s unsafe", k),
-				zap.Error(models.ErrUnsafeString),
-				zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-			)
-			return nil, models.ErrUnsafeString
-		}
+	ownerErr := safe.StringIs(owner)
+	if ownerErr != nil {
+		return nil, ownerErr
 	}
 
 	return &UpdateOwnerEvent{
@@ -102,38 +121,17 @@ func NewUpdateStatusEvent(
 	id string,
 	statusInt int) (*UpdateStatusEvent, error) {
 
-	defer func() {
-		_ = zap.L().Sync()
-	}()
-
-	args := map[string]string{
-		"id": id,
-	}
-
-	for k, v := range args {
-		if !security.SafeStr(v) {
-			zap.L().Info(fmt.Sprintf("%s unsafe", k),
-				zap.Error(models.ErrUnsafeString),
-				zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-			)
-			return nil, models.ErrUnsafeString
-		}
+	idErr := safe.StringIs(id)
+	if idErr != nil {
+		return nil, idErr
 	}
 
 	status, err := models.NewStatus(statusInt)
 	if err != nil {
-		zap.L().Info(fmt.Sprintf("%v not acceptable status", statusInt),
-			zap.Error(models.ErrDisallowedValue),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
 		return nil, models.ErrDisallowedValue
 	}
 
 	if status == models.StatusUnconfirmed {
-		zap.L().Info("cannot set existing row to unconfirmed",
-			zap.Error(models.ErrStatus),
-			zap.String(grokloc.RequestIDKey, grokloc.CtxRequestID(ctx)),
-		)
 		return nil, models.ErrStatus
 	}
 
