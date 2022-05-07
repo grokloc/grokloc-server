@@ -5,6 +5,9 @@ import (
 	"strings"
 )
 
+// ErrNotFound describes an unfound model
+var ErrNotFound error = errors.New("related model not found")
+
 // ErrConflict describes a duplicate row insertion
 var ErrConflict error = errors.New("row insertion conflict")
 

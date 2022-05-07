@@ -5,6 +5,7 @@ import (
 
 	"github.com/grokloc/grokloc-server/pkg/app"
 	"github.com/grokloc/grokloc-server/pkg/app/admin/org/events"
+	"github.com/grokloc/grokloc-server/pkg/models"
 )
 
 type Controller struct {
@@ -46,6 +47,11 @@ func (c *Controller) UpdateOwner(ctx context.Context, event events.UpdateOwner) 
 		return nil, err
 	}
 
+	// no org found with ID
+	if org == nil {
+		return nil, models.ErrNotFound
+	}
+
 	err = org.UpdateOwner(ctx, event.Owner, c.state.Master)
 	if err != nil {
 		return nil, err
@@ -60,6 +66,11 @@ func (c *Controller) UpdateStatus(ctx context.Context, event events.UpdateStatus
 
 	if err != nil {
 		return nil, err
+	}
+
+	// no org found with ID
+	if org == nil {
+		return nil, models.ErrNotFound
 	}
 
 	err = org.UpdateStatus(ctx, event.Status, c.state.Master)
