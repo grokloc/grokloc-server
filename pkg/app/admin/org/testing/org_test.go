@@ -63,11 +63,12 @@ func (s *OrgSuite) TestReadOrgMiss() {
 }
 
 func (s *OrgSuite) TestUpdateStatus() {
+	ctx := grokloc.WithRequestID(context.Background())
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
 	o, err := org.Create(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		uuid.NewString(), // org name
 		uuid.NewString(), // org owner display name
 		uuid.NewString(), // org owner email
@@ -78,7 +79,7 @@ func (s *OrgSuite) TestUpdateStatus() {
 	require.Nil(s.T(), err)
 
 	err = o.UpdateStatus(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		models.StatusInactive,
 		s.st.Master,
 	)
@@ -86,7 +87,7 @@ func (s *OrgSuite) TestUpdateStatus() {
 	require.Equal(s.T(), models.StatusInactive, o.Meta.Status)
 
 	o_read, err := org.Read(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		o.ID,
 		s.st.RandomReplica(),
 	)
@@ -96,11 +97,12 @@ func (s *OrgSuite) TestUpdateStatus() {
 }
 
 func (s *OrgSuite) TestUpdateOwner() {
+	ctx := grokloc.WithRequestID(context.Background())
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
 	o, err := org.Create(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		uuid.NewString(), // org name
 		uuid.NewString(), // org owner display name
 		uuid.NewString(), // org owner email
@@ -114,7 +116,7 @@ func (s *OrgSuite) TestUpdateOwner() {
 	require.Nil(s.T(), err)
 
 	newOwner, err := user.Create(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		uuid.NewString(), // display name
 		uuid.NewString(), // email
 		o.ID,
@@ -126,7 +128,7 @@ func (s *OrgSuite) TestUpdateOwner() {
 
 	// will fail - user is still unconfirmed
 	err = o.UpdateOwner(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		newOwner.ID,
 		s.st.Master,
 	)
@@ -134,7 +136,7 @@ func (s *OrgSuite) TestUpdateOwner() {
 	require.Equal(s.T(), models.ErrRelatedUser, err)
 
 	err = newOwner.UpdateStatus(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		models.StatusActive,
 		s.st.Master,
 	)
@@ -142,7 +144,7 @@ func (s *OrgSuite) TestUpdateOwner() {
 
 	// new owner is now active
 	err = o.UpdateOwner(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		newOwner.ID,
 		s.st.Master,
 	)
@@ -151,11 +153,12 @@ func (s *OrgSuite) TestUpdateOwner() {
 }
 
 func (s *OrgSuite) TestUpdateOwnerWrongOrg() {
+	ctx := grokloc.WithRequestID(context.Background())
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
 	o, err := org.Create(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		uuid.NewString(), // org name
 		uuid.NewString(), // org owner display name
 		uuid.NewString(), // org owner email
@@ -166,7 +169,7 @@ func (s *OrgSuite) TestUpdateOwnerWrongOrg() {
 	require.Nil(s.T(), err)
 
 	oOther, err := org.Create(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		uuid.NewString(), // org name
 		uuid.NewString(), // org owner display name
 		uuid.NewString(), // org owner email
@@ -178,7 +181,7 @@ func (s *OrgSuite) TestUpdateOwnerWrongOrg() {
 
 	// cannot make the owner of o the owner of oOther
 	err = oOther.UpdateOwner(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		o.Owner,
 		s.st.Master,
 	)
@@ -187,11 +190,12 @@ func (s *OrgSuite) TestUpdateOwnerWrongOrg() {
 }
 
 func (s *OrgSuite) TestUpdateOwnerMissing() {
+	ctx := grokloc.WithRequestID(context.Background())
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
 	o, err := org.Create(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		uuid.NewString(), // org name
 		uuid.NewString(), // org owner display name
 		uuid.NewString(), // org owner email
@@ -203,7 +207,7 @@ func (s *OrgSuite) TestUpdateOwnerMissing() {
 
 	// prospective new owner doesn't exist
 	err = o.UpdateOwner(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		uuid.NewString(),
 		s.st.Master,
 	)
@@ -235,7 +239,57 @@ func (s *OrgSuite) TestCreateEvent() {
 	require.Nil(s.T(), err)
 }
 
-// TestUpdateOwner requires a user create event (and test)
+func (s *OrgSuite) TestUpdateOwnerEvent() {
+	ctx := grokloc.WithRequestID(context.Background())
+	c, err := org.NewController(ctx, s.st)
+	require.Nil(s.T(), err)
+
+	// use direct db api to create a new org
+	o, err := org.Create(
+		ctx,
+		uuid.NewString(), // org name
+		uuid.NewString(), // org owner display name
+		uuid.NewString(), // org owner email
+		uuid.NewString(), // org owner password
+		s.st.DBKey,
+		s.st.Master,
+	)
+	require.Nil(s.T(), err)
+
+	newOwnerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
+	require.Nil(s.T(), err)
+
+	// use direct db api to create a user in o
+	newOwner, err := user.Create(
+		ctx,
+		uuid.NewString(), // display name
+		uuid.NewString(), // email
+		o.ID,
+		newOwnerPassword,
+		s.st.DBKey,
+		s.st.Master,
+	)
+	require.Nil(s.T(), err)
+
+	// use direct db api to make user active
+	err = newOwner.UpdateStatus(
+		ctx,
+		models.StatusActive,
+		s.st.Master,
+	)
+	require.Nil(s.T(), err)
+
+	updateOwnerEvent, err := events.NewUpdateOwner(
+		ctx,
+		o.ID,
+		newOwner.ID,
+	)
+	require.Nil(s.T(), err)
+
+	oUpdate, err := c.UpdateOwner(ctx, *updateOwnerEvent)
+	require.Nil(s.T(), err)
+	require.Equal(s.T(), newOwner.ID, oUpdate.Owner)
+}
 
 func (s *OrgSuite) TestUpdateStatusEvent() {
 	ctx := grokloc.WithRequestID(context.Background())
