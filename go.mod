@@ -6,8 +6,10 @@ replace (
 	github.com/grokloc/grokloc-server/pkg/app => ./pkg/app
 	github.com/grokloc/grokloc-server/pkg/app/admin => ./pkg/app/admin
 	github.com/grokloc/grokloc-server/pkg/app/admin/org => ./pkg/app/admin/org
+	github.com/grokloc/grokloc-server/pkg/app/admin/org/events => ./pkg/app/admin/org/events
 	github.com/grokloc/grokloc-server/pkg/app/admin/org/testing => ./pkg/app/admin/org/testing
 	github.com/grokloc/grokloc-server/pkg/app/admin/user => ./pkg/app/admin/user
+	github.com/grokloc/grokloc-server/pkg/app/admin/user/events => ./pkg/app/admin/user/events
 	github.com/grokloc/grokloc-server/pkg/app/admin/user/testing => ./pkg/app/admin/user/testing
 	github.com/grokloc/grokloc-server/pkg/app/audit => ./pkg/app/audit
 	github.com/grokloc/grokloc-server/pkg/app/audit/testing => ./pkg/app/audit/testing

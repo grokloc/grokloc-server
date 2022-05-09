@@ -37,7 +37,6 @@ func (e *Create) UnmarshalJSON(bs []byte) error {
 		return err
 	}
 
-	// all fields are safe, assign to ce
 	e.Name = n.Name
 	e.OwnerDisplayName = n.OwnerDisplayName
 	e.OwnerEmail = n.OwnerEmail

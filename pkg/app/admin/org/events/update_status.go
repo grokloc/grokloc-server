@@ -33,7 +33,6 @@ func (e *UpdateStatus) UnmarshalJSON(bs []byte) error {
 		return err
 	}
 
-	// all fields are safe, assign to use
 	e.ID = n.ID
 	e.Status = n.Status
 	return nil

@@ -32,7 +32,6 @@ func (e *UpdateOwner) UnmarshalJSON(bs []byte) error {
 		return err
 	}
 
-	// all fields are safe, assign to uoe
 	e.ID = n.ID
 	e.Owner = n.Owner
 	return nil
