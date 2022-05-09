@@ -67,11 +67,12 @@ func (s *UserSuite) TestReadUserMiss() {
 }
 
 func (s *UserSuite) TestUpdateDisplayName() {
+	ctx := grokloc.WithRequestID(context.Background())
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
 	o, err := org.Create(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		uuid.NewString(), // org name
 		uuid.NewString(), // org owner display name
 		uuid.NewString(), // org owner email
@@ -82,7 +83,7 @@ func (s *UserSuite) TestUpdateDisplayName() {
 	require.Nil(s.T(), err)
 
 	u, err := user.Read(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		o.Owner,
 		s.st.DBKey,
 		s.st.RandomReplica(),
@@ -93,7 +94,7 @@ func (s *UserSuite) TestUpdateDisplayName() {
 	newDisplayNameDigest := security.EncodedSHA256(newDisplayName)
 
 	err = u.UpdateDisplayName(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		newDisplayName,
 		s.st.DBKey,
 		s.st.Master,
@@ -103,7 +104,7 @@ func (s *UserSuite) TestUpdateDisplayName() {
 	require.Equal(s.T(), newDisplayNameDigest, u.DisplayNameDigest)
 
 	u_read, err := user.Read(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		o.Owner,
 		s.st.DBKey,
 		s.st.RandomReplica(),
@@ -111,15 +112,15 @@ func (s *UserSuite) TestUpdateDisplayName() {
 	require.Nil(s.T(), err)
 	require.Equal(s.T(), newDisplayName, u_read.DisplayName)
 	require.Equal(s.T(), newDisplayNameDigest, u_read.DisplayNameDigest)
-
 }
 
 func (s *UserSuite) TestUpdatePassword() {
+	ctx := grokloc.WithRequestID(context.Background())
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
 	o, err := org.Create(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		uuid.NewString(), // org name
 		uuid.NewString(), // org owner display name
 		uuid.NewString(), // org owner email
@@ -130,7 +131,7 @@ func (s *UserSuite) TestUpdatePassword() {
 	require.Nil(s.T(), err)
 
 	u, err := user.Read(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		o.Owner,
 		s.st.DBKey,
 		s.st.RandomReplica(),
@@ -141,7 +142,7 @@ func (s *UserSuite) TestUpdatePassword() {
 	require.Nil(s.T(), err)
 
 	err = u.UpdatePassword(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		newPassword,
 		s.st.Master,
 	)
@@ -149,7 +150,7 @@ func (s *UserSuite) TestUpdatePassword() {
 	require.Equal(s.T(), newPassword, u.Password)
 
 	u_read, err := user.Read(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		o.Owner,
 		s.st.DBKey,
 		s.st.RandomReplica(),
@@ -159,11 +160,12 @@ func (s *UserSuite) TestUpdatePassword() {
 }
 
 func (s *UserSuite) TestUpdateStatus() {
+	ctx := grokloc.WithRequestID(context.Background())
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
 	o, err := org.Create(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		uuid.NewString(), // org name
 		uuid.NewString(), // org owner display name
 		uuid.NewString(), // org owner email
@@ -177,7 +179,7 @@ func (s *UserSuite) TestUpdateStatus() {
 	require.Nil(s.T(), err)
 
 	u, err := user.Create(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		uuid.NewString(), // display name
 		uuid.NewString(), // email
 		o.ID,
@@ -188,7 +190,7 @@ func (s *UserSuite) TestUpdateStatus() {
 	require.Nil(s.T(), err)
 
 	err = u.UpdateStatus(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		models.StatusInactive,
 		s.st.Master,
 	)
@@ -196,7 +198,7 @@ func (s *UserSuite) TestUpdateStatus() {
 	require.Equal(s.T(), models.StatusInactive, u.Meta.Status)
 
 	u_read, err := user.Read(
-		grokloc.WithRequestID(context.Background()),
+		ctx,
 		u.ID,
 		s.st.DBKey,
 		s.st.RandomReplica(),
