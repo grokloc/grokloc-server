@@ -11,6 +11,7 @@ import (
 	"github.com/grokloc/grokloc-server/pkg/app"
 	"github.com/grokloc/grokloc-server/pkg/app/admin/org"
 	"github.com/grokloc/grokloc-server/pkg/app/admin/user"
+	"github.com/grokloc/grokloc-server/pkg/app/admin/user/events"
 	"github.com/grokloc/grokloc-server/pkg/app/state"
 	"github.com/grokloc/grokloc-server/pkg/env"
 	"github.com/grokloc/grokloc-server/pkg/grokloc"
@@ -206,6 +207,145 @@ func (s *UserSuite) TestUpdateStatus() {
 	require.Nil(s.T(), err)
 	require.Equal(s.T(), models.StatusInactive, u.Meta.Status)
 	require.Equal(s.T(), models.StatusInactive, u_read.Meta.Status)
+}
+
+func (s *UserSuite) TestCreateEvent() {
+	ctx := grokloc.WithRequestID(context.Background())
+	c, err := user.NewController(ctx, s.st)
+	require.Nil(s.T(), err)
+
+	password, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
+	require.Nil(s.T(), err)
+
+	event, err := events.NewCreate(
+		ctx,
+		uuid.NewString(), // display name
+		uuid.NewString(), // email
+		s.st.RootOrg,
+		password,
+	)
+	require.Nil(s.T(), err)
+
+	u, err := c.Create(ctx, *event)
+	require.Nil(s.T(), err)
+
+	_, err = c.Read(ctx, u.ID)
+	require.Nil(s.T(), err)
+}
+
+func (s *UserSuite) TestUpdateDisplayNameEvent() {
+	ctx := grokloc.WithRequestID(context.Background())
+	c, err := user.NewController(ctx, s.st)
+	require.Nil(s.T(), err)
+
+	password, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
+	require.Nil(s.T(), err)
+
+	event, err := events.NewCreate(
+		ctx,
+		uuid.NewString(), // display name
+		uuid.NewString(), // email
+		s.st.RootOrg,
+		password,
+	)
+	require.Nil(s.T(), err)
+
+	u, err := c.Create(ctx, *event)
+	require.Nil(s.T(), err)
+
+	newDisplayName := uuid.NewString()
+
+	updateDisplayNameEvent, err := events.NewUpdateDisplayName(
+		ctx,
+		u.ID,
+		newDisplayName,
+	)
+	require.Nil(s.T(), err)
+	uUpdate, err := c.UpdateDisplayName(ctx, *updateDisplayNameEvent)
+	require.Nil(s.T(), err)
+	require.Equal(s.T(), newDisplayName, uUpdate.DisplayName)
+}
+
+func (s *UserSuite) TestUpdatePasswordEvent() {
+	ctx := grokloc.WithRequestID(context.Background())
+	c, err := user.NewController(ctx, s.st)
+	require.Nil(s.T(), err)
+
+	password, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
+	require.Nil(s.T(), err)
+
+	event, err := events.NewCreate(
+		ctx,
+		uuid.NewString(), // display name
+		uuid.NewString(), // email
+		s.st.RootOrg,
+		password,
+	)
+	require.Nil(s.T(), err)
+
+	u, err := c.Create(ctx, *event)
+	require.Nil(s.T(), err)
+
+	newPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
+	require.Nil(s.T(), err)
+
+	updatePasswordEvent, err := events.NewUpdatePassword(
+		ctx,
+		u.ID,
+		newPassword,
+	)
+	require.Nil(s.T(), err)
+	uUpdate, err := c.UpdatePassword(ctx, *updatePasswordEvent)
+	require.Nil(s.T(), err)
+	require.Equal(s.T(), newPassword, uUpdate.Password)
+}
+
+func (s *UserSuite) TestUpdateStatusEvent() {
+	ctx := grokloc.WithRequestID(context.Background())
+	c, err := user.NewController(ctx, s.st)
+	require.Nil(s.T(), err)
+
+	password, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
+	require.Nil(s.T(), err)
+
+	event, err := events.NewCreate(
+		ctx,
+		uuid.NewString(), // display name
+		uuid.NewString(), // email
+		s.st.RootOrg,
+		password,
+	)
+	require.Nil(s.T(), err)
+
+	u, err := c.Create(ctx, *event)
+	require.Nil(s.T(), err)
+
+	_, err = events.NewUpdateStatus(
+		ctx,
+		u.ID,
+		999, // not a valid status int
+	)
+	require.NotNil(s.T(), err)
+	require.Equal(s.T(), models.ErrDisallowedValue, err)
+
+	_, err = events.NewUpdateStatus(
+		ctx,
+		u.ID,
+		int(models.StatusUnconfirmed), // unconfirmed not allowed as a set status
+	)
+	require.NotNil(s.T(), err)
+	require.Equal(s.T(), models.ErrStatus, err)
+
+	updateStatusEvent, err := events.NewUpdateStatus(
+		ctx,
+		u.ID,
+		int(models.StatusInactive),
+	)
+	require.Nil(s.T(), err)
+
+	uUpdate, err := c.UpdateStatus(ctx, *updateStatusEvent)
+	require.Nil(s.T(), err)
+	require.Equal(s.T(), models.StatusInactive, uUpdate.Meta.Status)
 }
 
 func TestUserSuite(t *testing.T) {
