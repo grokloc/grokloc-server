@@ -1,17 +1,16 @@
-ARCHLINUX  = archlinux:latest
-IMG_BASE   = grokloc/grokloc-server:base
-IMG_DEV    = grokloc/grokloc-server:dev
-DOCKER     = docker
-DOCKER_RUN = $(DOCKER) run --rm -it
-GO         = go
-UNIT_ENVS  = --env-file ./env/unit.env
-PORTS      = -p 3000:3000
-CWD        = $(shell pwd)
-BASE       = /grokloc
-RUN        = $(DOCKER_RUN) -v $(CWD):$(BASE) -w $(BASE) $(UNIT_ENVS) $(PORTS) $(IMG_DEV)
-
-LINT       = golangci-lint --timeout=24h run pkg/... && staticcheck ./... && go vet ./...
-TEST       = $(GO) test -v -race ./...
+GOLANG_BASE = golang:bullseye
+IMG_BASE    = grokloc/grokloc-server:base
+IMG_DEV     = grokloc/grokloc-server:dev
+DOCKER      = docker
+DOCKER_RUN  = $(DOCKER) run --rm -it
+GO          = go
+UNIT_ENVS   = --env-file ./env/unit.env
+PORTS       = -p 3000:3000
+CWD         = $(shell pwd)
+BASE        = /grokloc
+RUN         = $(DOCKER_RUN) -v $(CWD):$(BASE) -w $(BASE) $(UNIT_ENVS) $(PORTS) $(IMG_DEV)
+LINT        = golangci-lint --timeout=24h run pkg/... && staticcheck ./... && go vet ./...
+TEST        = $(GO) test -v -race ./...
 
 .DEFAULT_GOAL := build
 
@@ -19,11 +18,30 @@ TEST       = $(GO) test -v -race ./...
 build:
 	$(GO) build ./...
 
-.PHONY: docker
-docker:
-	$(DOCKER) pull $(ARCHLINUX)
+.PHONY: golang-base
+golang-base:
+	$(DOCKER) pull $(GOLANG_BASE)
+
+.PHONY: docker-base
+docker-base:
 	$(DOCKER) build . -f Dockerfile.base -t $(IMG_BASE)
-	$(DOCKER) build . -f Dockerfile.dev -t $(IMG_DEV)
+
+.PHONY: docker-dev
+docker-dev:
+	$(DOCKER) tag $(IMG_BASE) $(IMG_DEV)
+
+.PHONY: docker
+docker: golang-base docker-base docker-dev
+
+.PHONY: docker-push
+docker-push:
+	$(DOCKER) push $(IMG_BASE)
+	$(DOCKER) push $(IMG_DEV)
+
+.PHONY: docker-pull
+docker-pull: golang-base
+	$(DOCKER) pull $(IMG_BASE)
+	$(DOCKER) pull $(IMG_DEV)
 
 .PHONY: mod
 mod:
