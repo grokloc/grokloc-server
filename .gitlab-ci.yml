@@ -1,0 +1,25 @@
+image: grokloc/grokloc-server:dev
+
+variables:
+  GROKLOC_ENV: "UNIT"
+  APP_HOST: "localhost"
+  APP_PORT: "3000"
+  CI: "1"
+
+default:
+  before_script:
+    - ln -s /builds/grokloc/grokloc-server /grokloc
+
+stages:
+  - check
+  - test
+
+check:
+  stage: check
+  script:
+    - make local-check
+
+test:
+  stage: test
+  script:
+    - make local-test
