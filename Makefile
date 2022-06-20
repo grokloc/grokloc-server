@@ -69,3 +69,6 @@ local-test:
 .PHONY: test
 test:
 	$(RUN) $(TEST)
+
+.PHONY: all
+all: check test

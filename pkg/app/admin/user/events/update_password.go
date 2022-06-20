@@ -42,7 +42,7 @@ func NewUpdatePassword(
 	id string,
 	password string) (*UpdatePassword, error) {
 
-	idErr := safe.StringIs(id)
+	idErr := safe.IDIs(id)
 	if idErr != nil {
 		return nil, idErr
 	}

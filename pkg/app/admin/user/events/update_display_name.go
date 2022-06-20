@@ -9,7 +9,7 @@ import (
 
 type UpdateDisplayName struct {
 	ID          string `json:"id"`
-	DisplayName string `json:"displayName"`
+	DisplayName string `json:"display_name"`
 }
 
 func (e *UpdateDisplayName) UnmarshalJSON(bs []byte) error {
@@ -42,7 +42,7 @@ func NewUpdateDisplayName(
 	id string,
 	displayName string) (*UpdateDisplayName, error) {
 
-	idErr := safe.StringIs(id)
+	idErr := safe.IDIs(id)
 	if idErr != nil {
 		return nil, idErr
 	}

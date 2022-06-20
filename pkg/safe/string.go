@@ -51,18 +51,11 @@ func StringIs(s string) error {
 	return nil
 }
 
-type String struct {
-	s string
-}
-
-func NewString(s string) (*String, error) {
-	err := StringIs(s)
-	if err != nil {
-		return nil, err
+// IDIs returns true if the ID Is safe
+func IDIs(s string) error {
+	re := regexp.MustCompile(`^\w[\w\-]+\w$`)
+	if len(s) > MaxStringLength || !re.Match([]byte(s)) {
+		return errors.New(`input string is not an ID`)
 	}
-	return &String{s: s}, nil
-}
-
-func (ss String) String() string {
-	return ss.s
+	return nil
 }

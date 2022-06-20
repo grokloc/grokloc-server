@@ -2,8 +2,10 @@ package events
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -13,7 +15,8 @@ type UpdateStatusSuite struct {
 }
 
 func (s *UpdateStatusSuite) TestUnmarshalUpdateStatusEvent() {
-	bs := []byte(`{"id":"i","status":3}`)
+	bs := []byte(fmt.Sprintf(`{"id":"%s","status":%d}`,
+		uuid.NewString(), 3))
 	var e UpdateStatus
 	require.NoError(s.T(), json.Unmarshal(bs, &e))
 

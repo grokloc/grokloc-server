@@ -2,8 +2,10 @@ package events
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -13,7 +15,8 @@ type UpdateOwnerSuite struct {
 }
 
 func (s *UpdateOwnerSuite) TestUnmarshalUpdateOwnerEvent() {
-	bs := []byte(`{"id":"i","owner":"o"}`)
+	bs := []byte(fmt.Sprintf(`{"id":"%s","owner":"%s"}`,
+		uuid.NewString(), uuid.NewString()))
 	var e UpdateOwner
 	require.NoError(s.T(), json.Unmarshal(bs, &e))
 

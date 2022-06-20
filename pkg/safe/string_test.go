@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -40,6 +41,12 @@ func (s *StringSuite) TestStringIs() {
                                       line
                                      `))
 	require.Equal(s.T(), ErrWSDetected, StringIs("\thello\t"))
+}
+
+func (s *StringSuite) TestIDIs() {
+	require.Nil(s.T(), IDIs(uuid.NewString()))
+	require.Error(s.T(), IDIs(``))
+	require.Error(s.T(), IDIs(uuid.NewString()+` `+uuid.NewString()))
 }
 
 func TestStringSuite(t *testing.T) {

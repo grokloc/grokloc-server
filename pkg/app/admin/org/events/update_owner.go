@@ -42,7 +42,7 @@ func NewUpdateOwner(
 	id string,
 	owner string) (*UpdateOwner, error) {
 
-	idErr := safe.StringIs(id)
+	idErr := safe.IDIs(id)
 	if idErr != nil {
 		return nil, idErr
 	}

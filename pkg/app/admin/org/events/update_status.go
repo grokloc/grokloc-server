@@ -43,7 +43,7 @@ func NewUpdateStatus(
 	id string,
 	statusInt int) (*UpdateStatus, error) {
 
-	idErr := safe.StringIs(id)
+	idErr := safe.IDIs(id)
 	if idErr != nil {
 		return nil, idErr
 	}
