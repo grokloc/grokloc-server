@@ -11,7 +11,6 @@ import (
 	"github.com/grokloc/grokloc-server/pkg/app/audit"
 	"github.com/grokloc/grokloc-server/pkg/app/state"
 	"github.com/grokloc/grokloc-server/pkg/env"
-	"github.com/grokloc/grokloc-server/pkg/grokloc"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/zap"
@@ -34,7 +33,7 @@ func (s *AuditSuite) SetupTest() {
 
 func (s *AuditSuite) TestInsert() {
 	err := audit.Insert(
-		grokloc.context.Background(),
+		context.Background(),
 		audit.USER_INSERT,
 		uuid.NewString(),
 		uuid.NewString(),

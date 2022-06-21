@@ -11,7 +11,6 @@ import (
 	"github.com/grokloc/grokloc-server/pkg/app/admin/user"
 	"github.com/grokloc/grokloc-server/pkg/app/state"
 	"github.com/grokloc/grokloc-server/pkg/env"
-	"github.com/grokloc/grokloc-server/pkg/grokloc"
 	"github.com/grokloc/grokloc-server/pkg/models"
 	"github.com/grokloc/grokloc-server/pkg/security"
 	"go.uber.org/zap"
@@ -37,7 +36,7 @@ func (s *JWTSuite) SetupTest() {
 
 func (s *JWTSuite) TestJWT() {
 	// make a new org and user as owner
-	ctx := grokloc.context.Background()
+	ctx := context.Background()
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 

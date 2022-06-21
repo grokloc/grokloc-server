@@ -14,7 +14,6 @@ import (
 	"github.com/grokloc/grokloc-server/pkg/app/admin/user"
 	"github.com/grokloc/grokloc-server/pkg/app/state"
 	"github.com/grokloc/grokloc-server/pkg/env"
-	"github.com/grokloc/grokloc-server/pkg/grokloc"
 	"github.com/grokloc/grokloc-server/pkg/models"
 	"github.com/grokloc/grokloc-server/pkg/security"
 	"github.com/stretchr/testify/require"
@@ -42,7 +41,7 @@ func (s *OrgSuite) TestReadOrg() {
 
 	// State initialization creates an org (and owner user)
 	o, err := org.Read(
-		grokloc.context.Background(),
+		context.Background(),
 		s.st.RootOrg,
 		replica,
 	)
@@ -54,7 +53,7 @@ func (s *OrgSuite) TestReadOrgMiss() {
 	replica := s.st.RandomReplica()
 
 	_, err := org.Read(
-		grokloc.context.Background(),
+		context.Background(),
 		uuid.NewString(),
 		replica,
 	)
@@ -63,7 +62,7 @@ func (s *OrgSuite) TestReadOrgMiss() {
 }
 
 func (s *OrgSuite) TestUpdateStatus() {
-	ctx := grokloc.context.Background()
+	ctx := context.Background()
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
@@ -97,7 +96,7 @@ func (s *OrgSuite) TestUpdateStatus() {
 }
 
 func (s *OrgSuite) TestUpdateOwner() {
-	ctx := grokloc.context.Background()
+	ctx := context.Background()
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
@@ -153,7 +152,7 @@ func (s *OrgSuite) TestUpdateOwner() {
 }
 
 func (s *OrgSuite) TestUpdateOwnerWrongOrg() {
-	ctx := grokloc.context.Background()
+	ctx := context.Background()
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
@@ -190,7 +189,7 @@ func (s *OrgSuite) TestUpdateOwnerWrongOrg() {
 }
 
 func (s *OrgSuite) TestUpdateOwnerMissing() {
-	ctx := grokloc.context.Background()
+	ctx := context.Background()
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
@@ -216,7 +215,7 @@ func (s *OrgSuite) TestUpdateOwnerMissing() {
 }
 
 func (s *OrgSuite) TestCreateEvent() {
-	ctx := grokloc.context.Background()
+	ctx := context.Background()
 	c, err := org.NewController(ctx, s.st)
 	require.Nil(s.T(), err)
 
@@ -240,7 +239,7 @@ func (s *OrgSuite) TestCreateEvent() {
 }
 
 func (s *OrgSuite) TestUpdateOwnerEvent() {
-	ctx := grokloc.context.Background()
+	ctx := context.Background()
 	c, err := org.NewController(ctx, s.st)
 	require.Nil(s.T(), err)
 
@@ -292,7 +291,7 @@ func (s *OrgSuite) TestUpdateOwnerEvent() {
 }
 
 func (s *OrgSuite) TestUpdateStatusEvent() {
-	ctx := grokloc.context.Background()
+	ctx := context.Background()
 	c, err := org.NewController(ctx, s.st)
 	require.Nil(s.T(), err)
 
