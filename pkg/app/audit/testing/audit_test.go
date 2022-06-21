@@ -34,7 +34,7 @@ func (s *AuditSuite) SetupTest() {
 
 func (s *AuditSuite) TestInsert() {
 	err := audit.Insert(
-		grokloc.WithRequestID(context.Background()),
+		grokloc.context.Background(),
 		audit.USER_INSERT,
 		uuid.NewString(),
 		uuid.NewString(),

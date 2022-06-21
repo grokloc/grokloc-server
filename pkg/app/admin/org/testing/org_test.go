@@ -42,7 +42,7 @@ func (s *OrgSuite) TestReadOrg() {
 
 	// State initialization creates an org (and owner user)
 	o, err := org.Read(
-		grokloc.WithRequestID(context.Background()),
+		grokloc.context.Background(),
 		s.st.RootOrg,
 		replica,
 	)
@@ -54,7 +54,7 @@ func (s *OrgSuite) TestReadOrgMiss() {
 	replica := s.st.RandomReplica()
 
 	_, err := org.Read(
-		grokloc.WithRequestID(context.Background()),
+		grokloc.context.Background(),
 		uuid.NewString(),
 		replica,
 	)
@@ -63,7 +63,7 @@ func (s *OrgSuite) TestReadOrgMiss() {
 }
 
 func (s *OrgSuite) TestUpdateStatus() {
-	ctx := grokloc.WithRequestID(context.Background())
+	ctx := grokloc.context.Background()
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
@@ -97,7 +97,7 @@ func (s *OrgSuite) TestUpdateStatus() {
 }
 
 func (s *OrgSuite) TestUpdateOwner() {
-	ctx := grokloc.WithRequestID(context.Background())
+	ctx := grokloc.context.Background()
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
@@ -153,7 +153,7 @@ func (s *OrgSuite) TestUpdateOwner() {
 }
 
 func (s *OrgSuite) TestUpdateOwnerWrongOrg() {
-	ctx := grokloc.WithRequestID(context.Background())
+	ctx := grokloc.context.Background()
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
@@ -190,7 +190,7 @@ func (s *OrgSuite) TestUpdateOwnerWrongOrg() {
 }
 
 func (s *OrgSuite) TestUpdateOwnerMissing() {
-	ctx := grokloc.WithRequestID(context.Background())
+	ctx := grokloc.context.Background()
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
@@ -216,7 +216,7 @@ func (s *OrgSuite) TestUpdateOwnerMissing() {
 }
 
 func (s *OrgSuite) TestCreateEvent() {
-	ctx := grokloc.WithRequestID(context.Background())
+	ctx := grokloc.context.Background()
 	c, err := org.NewController(ctx, s.st)
 	require.Nil(s.T(), err)
 
@@ -240,7 +240,7 @@ func (s *OrgSuite) TestCreateEvent() {
 }
 
 func (s *OrgSuite) TestUpdateOwnerEvent() {
-	ctx := grokloc.WithRequestID(context.Background())
+	ctx := grokloc.context.Background()
 	c, err := org.NewController(ctx, s.st)
 	require.Nil(s.T(), err)
 
@@ -292,7 +292,7 @@ func (s *OrgSuite) TestUpdateOwnerEvent() {
 }
 
 func (s *OrgSuite) TestUpdateStatusEvent() {
-	ctx := grokloc.WithRequestID(context.Background())
+	ctx := grokloc.context.Background()
 	c, err := org.NewController(ctx, s.st)
 	require.Nil(s.T(), err)
 

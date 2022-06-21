@@ -37,7 +37,7 @@ func (s *JWTSuite) SetupTest() {
 
 func (s *JWTSuite) TestJWT() {
 	// make a new org and user as owner
-	ctx := grokloc.WithRequestID(context.Background())
+	ctx := grokloc.context.Background()
 	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 

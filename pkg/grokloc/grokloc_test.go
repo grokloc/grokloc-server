@@ -13,7 +13,7 @@ type GrokLOCSuite struct {
 }
 
 func (s *GrokLOCSuite) TestContext() {
-	ctx := WithRequestID(context.Background())
+	ctx := context.Background()
 	id := CtxRequestID(ctx)
 	require.NotEqual(s.T(), "", id)
 }
