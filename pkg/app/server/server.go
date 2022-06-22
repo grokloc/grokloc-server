@@ -2,9 +2,12 @@
 package server
 
 import (
+	"context"
 	"time"
 
 	"github.com/grokloc/grokloc-server/pkg/app"
+	"github.com/grokloc/grokloc-server/pkg/app/admin/org"
+	"github.com/grokloc/grokloc-server/pkg/app/admin/user"
 	"github.com/grokloc/grokloc-server/pkg/app/state"
 	"github.com/grokloc/grokloc-server/pkg/env"
 )
@@ -39,8 +42,10 @@ var (
 
 // Instance is a single app server
 type Instance struct {
-	ST      *app.State
-	Started time.Time
+	ST             *app.State
+	Started        time.Time
+	OrgController  *org.Controller
+	UserController *user.Controller
 }
 
 // New creates a new app server Instance
@@ -49,5 +54,18 @@ func New(level env.Level) (*Instance, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Instance{ST: st, Started: time.Now()}, nil
+	oc, err := org.NewController(context.Background(), st)
+	if err != nil {
+		return nil, err
+	}
+	uc, err := user.NewController(context.Background(), st)
+	if err != nil {
+		return nil, err
+	}
+	return &Instance{
+		ST:             st,
+		Started:        time.Now(),
+		OrgController:  oc,
+		UserController: uc,
+	}, nil
 }

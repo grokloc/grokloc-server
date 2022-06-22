@@ -285,8 +285,7 @@ func (s *UserSuite) TestUpdatePasswordEvent() {
 	u, err := c.Create(ctx, *event)
 	require.Nil(s.T(), err)
 
-	newPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
-	require.Nil(s.T(), err)
+	newPassword := uuid.NewString()
 
 	updatePasswordEvent, err := events.NewUpdatePassword(
 		ctx,
@@ -296,7 +295,9 @@ func (s *UserSuite) TestUpdatePasswordEvent() {
 	require.Nil(s.T(), err)
 	uUpdate, err := c.UpdatePassword(ctx, *updatePasswordEvent)
 	require.Nil(s.T(), err)
-	require.Equal(s.T(), newPassword, uUpdate.Password)
+	match, err := security.VerifyPassword(newPassword, uUpdate.Password)
+	require.Nil(s.T(), err)
+	require.True(s.T(), match)
 }
 
 func (s *UserSuite) TestUpdateStatusEvent() {

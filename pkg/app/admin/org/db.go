@@ -30,7 +30,7 @@ func Create(
 		ownerDisplayName,
 		ownerEmail,
 		id,
-		ownerPassword,
+		ownerPassword, // assumed derived
 		key)
 	if err != nil {
 		return nil, err

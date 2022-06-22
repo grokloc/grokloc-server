@@ -6,6 +6,7 @@ import (
 	"github.com/grokloc/grokloc-server/pkg/app"
 	"github.com/grokloc/grokloc-server/pkg/app/admin/user/events"
 	"github.com/grokloc/grokloc-server/pkg/models"
+	"github.com/grokloc/grokloc-server/pkg/security"
 )
 
 type Controller struct {
@@ -18,12 +19,21 @@ func NewController(ctx context.Context, state *app.State) (*Controller, error) {
 
 func (c *Controller) Create(ctx context.Context, event events.Create) (*User, error) {
 
+	// password asumed clear text - derive it
+	password, err := security.DerivePassword(
+		event.Password,
+		c.state.Argon2Cfg,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	user, err := Create(
 		ctx,
 		event.DisplayName,
 		event.Email,
 		event.Org,
-		event.Password,
+		password,
 		c.state.DBKey,
 		c.state.Master,
 	)
@@ -73,7 +83,16 @@ func (c *Controller) UpdatePassword(ctx context.Context, event events.UpdatePass
 		return nil, models.ErrNotFound
 	}
 
-	err = user.UpdatePassword(ctx, event.Password, c.state.Master)
+	// password asumed clear text - derive it
+	password, err := security.DerivePassword(
+		event.Password,
+		c.state.Argon2Cfg,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	err = user.UpdatePassword(ctx, password, c.state.Master)
 	if err != nil {
 		return nil, err
 	}

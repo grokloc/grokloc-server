@@ -8,7 +8,8 @@ import (
 )
 
 type UpdatePassword struct {
-	ID       string `json:"id"`
+	ID string `json:"id"`
+	// Password assumed clear text
 	Password string `json:"password"`
 }
 
