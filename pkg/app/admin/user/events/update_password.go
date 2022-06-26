@@ -9,7 +9,7 @@ import (
 
 type UpdatePassword struct {
 	ID string `json:"id"`
-	// Password assumed clear text
+	// Password assumed derived
 	Password string `json:"password"`
 }
 

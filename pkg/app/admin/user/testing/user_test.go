@@ -36,6 +36,35 @@ func (s *UserSuite) SetupTest() {
 	}
 }
 
+func (s *UserSuite) TestCreate() {
+	ctx := context.Background()
+	clearPassword := uuid.NewString()
+	ownerPassword, err := security.DerivePassword(clearPassword, s.st.Argon2Cfg)
+	require.Nil(s.T(), err)
+
+	o, err := org.Create(
+		ctx,
+		uuid.NewString(), // org name
+		uuid.NewString(), // org owner display name
+		uuid.NewString(), // org owner email
+		ownerPassword,
+		s.st.DBKey,
+		s.st.Master,
+	)
+	require.Nil(s.T(), err)
+
+	u_read, err := user.Read(
+		ctx,
+		o.Owner,
+		s.st.DBKey,
+		s.st.RandomReplica(),
+	)
+	require.Nil(s.T(), err)
+	match, err := security.VerifyPassword(clearPassword, u_read.Password)
+	require.Nil(s.T(), err)
+	require.True(s.T(), match)
+}
+
 func (s *UserSuite) TestReadUser() {
 	replica := s.st.RandomReplica()
 
@@ -138,7 +167,8 @@ func (s *UserSuite) TestUpdatePassword() {
 	)
 	require.Nil(s.T(), err)
 
-	newPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
+	clearPassword := uuid.NewString()
+	newPassword, err := security.DerivePassword(clearPassword, s.st.Argon2Cfg)
 	require.Nil(s.T(), err)
 
 	err = u.UpdatePassword(
@@ -157,6 +187,9 @@ func (s *UserSuite) TestUpdatePassword() {
 	)
 	require.Nil(s.T(), err)
 	require.Equal(s.T(), newPassword, u_read.Password)
+	match, err := security.VerifyPassword(clearPassword, u_read.Password)
+	require.Nil(s.T(), err)
+	require.True(s.T(), match)
 }
 
 func (s *UserSuite) TestUpdateStatus() {

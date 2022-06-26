@@ -19,21 +19,12 @@ func NewController(ctx context.Context, state *app.State) (*Controller, error) {
 
 func (c *Controller) Create(ctx context.Context, event events.Create) (*User, error) {
 
-	// password asumed clear text - derive it
-	password, err := security.DerivePassword(
-		event.Password,
-		c.state.Argon2Cfg,
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	user, err := Create(
 		ctx,
 		event.DisplayName,
 		event.Email,
 		event.Org,
-		password,
+		event.Password,
 		c.state.DBKey,
 		c.state.Master,
 	)

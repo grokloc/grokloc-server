@@ -11,7 +11,7 @@ type Create struct {
 	DisplayName string `json:"display_name"`
 	Email       string `json:"email"`
 	Org         string `json:"org"`
-	// Password assumed clear text
+	// Password assumed derived
 	Password string `json:"password"`
 }
 

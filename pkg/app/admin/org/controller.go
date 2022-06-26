@@ -6,7 +6,6 @@ import (
 	"github.com/grokloc/grokloc-server/pkg/app"
 	"github.com/grokloc/grokloc-server/pkg/app/admin/org/events"
 	"github.com/grokloc/grokloc-server/pkg/models"
-	"github.com/grokloc/grokloc-server/pkg/security"
 )
 
 type Controller struct {
@@ -19,21 +18,12 @@ func NewController(ctx context.Context, state *app.State) (*Controller, error) {
 
 func (c *Controller) Create(ctx context.Context, event events.Create) (*Org, error) {
 
-	// owner password asumed clear text - derive it
-	ownerPassword, err := security.DerivePassword(
-		event.OwnerPassword,
-		c.state.Argon2Cfg,
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	org, err := Create(
 		ctx,
 		event.Name,
 		event.OwnerDisplayName,
 		event.OwnerEmail,
-		ownerPassword,
+		event.OwnerPassword,
 		c.state.DBKey,
 		c.state.Master,
 	)

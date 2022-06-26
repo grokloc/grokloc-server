@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/grokloc/grokloc-server/pkg/app/admin/org/events"
 	"github.com/grokloc/grokloc-server/pkg/models"
+	"github.com/grokloc/grokloc-server/pkg/security"
 	"go.uber.org/zap"
 )
 
@@ -41,6 +42,20 @@ func (srv *Instance) CreateOrg(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "malformed org create event", http.StatusBadRequest)
 		return
 	}
+
+	// password assumed cleartext, derive
+	ownerPassword, err := security.DerivePassword(
+		event.OwnerPassword,
+		srv.ST.Argon2Cfg,
+	)
+	if err != nil {
+		sugar.Debugw("derive org owner password",
+			"reqid", middleware.GetReqID(ctx),
+			"err", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	event.OwnerPassword = ownerPassword
 
 	o, err := srv.OrgController.Create(ctx, event)
 	if err != nil {
