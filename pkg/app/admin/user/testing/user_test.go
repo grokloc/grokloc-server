@@ -208,6 +208,42 @@ func (s *UserSuite) TestUpdateStatus() {
 	require.Equal(s.T(), models.StatusInactive, u_read.Meta.Status)
 }
 
+func (s *UserSuite) TestDuplicateInsert() {
+	ctx := context.Background()
+	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
+	require.Nil(s.T(), err)
+
+	email := uuid.NewString()
+	o, err := org.Create(
+		ctx,
+		uuid.NewString(), // org name
+		uuid.NewString(), // org owner display name
+		email,
+		ownerPassword,
+		s.st.DBKey,
+		s.st.Master,
+	)
+	require.Nil(s.T(), err)
+
+	_, err = user.Read(ctx, o.Owner, s.st.DBKey, s.st.Master)
+	require.Nil(s.T(), err)
+
+	userPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
+	require.Nil(s.T(), err)
+	u, err := user.Encrypted(
+		ctx,
+		uuid.NewString(), // display name
+		email,            // RE-USED -> conflict
+		o.ID,
+		userPassword,
+		s.st.DBKey,
+	)
+	require.Nil(s.T(), err)
+
+	err = u.Insert(ctx, s.st.Master)
+	require.Equal(s.T(), models.ErrConflict, err)
+}
+
 func (s *UserSuite) TestCreateEvent() {
 	ctx := context.Background()
 	c, err := user.NewController(ctx, s.st)

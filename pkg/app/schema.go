@@ -23,7 +23,7 @@ create table if not exists users (
        mtime integer,
        primary key (id));
 -- STMT
-create unique index if not exists users_email_org on users (email, org);
+create unique index if not exists users_email_org on users (email_digest, org);
 -- STMT
 create trigger if not exists users_ctime_trigger after insert on users
 begin

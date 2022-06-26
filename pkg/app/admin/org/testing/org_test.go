@@ -214,6 +214,37 @@ func (s *OrgSuite) TestUpdateOwnerMissing() {
 	require.Equal(s.T(), models.ErrRelatedUser, err)
 }
 
+func (s *OrgSuite) TestDuplicateInsert() {
+	ctx := context.Background()
+	ownerPassword, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
+	require.Nil(s.T(), err)
+
+	name := uuid.NewString()
+	_, err = org.Create(
+		ctx,
+		name,
+		uuid.NewString(), // org owner display name
+		uuid.NewString(), // org owner email
+		ownerPassword,
+		s.st.DBKey,
+		s.st.Master,
+	)
+	require.Nil(s.T(), err)
+
+	ownerPassword2, err := security.DerivePassword(uuid.NewString(), s.st.Argon2Cfg)
+	require.Nil(s.T(), err)
+	_, err = org.Create(
+		ctx,
+		name,             // RE-USED -> conflict
+		uuid.NewString(), // org owner display name
+		uuid.NewString(), // org owner email
+		ownerPassword2,
+		s.st.DBKey,
+		s.st.Master,
+	)
+	require.Equal(s.T(), models.ErrConflict, err)
+}
+
 func (s *OrgSuite) TestCreateEvent() {
 	ctx := context.Background()
 	c, err := org.NewController(ctx, s.st)
