@@ -50,21 +50,21 @@ func (srv *Instance) Router() *chi.Mux {
 		r.Get(StatusPath, Ok)
 	})
 
-	// r.Route(OrgRoute, func(r chi.Router) {
-	// 	r.Use(srv.WithSession)
-	// 	r.Use(srv.WithToken)
-	// 	r.Post("/", srv.CreateOrg)
-	// 	r.Get(fmt.Sprintf("/{%s}", IDParam), srv.ReadOrg)
-	// 	r.Put(fmt.Sprintf("/{%s}", IDParam), srv.UpdateOrg)
-	// })
+	r.Route(OrgRoute, func(r chi.Router) {
+		r.Use(srv.WithSession)
+		r.Use(srv.WithToken)
+		r.Post("/", srv.CreateOrg)
+		//r.Get(fmt.Sprintf("/{%s}", IDParam), srv.ReadOrg)
+		//r.Put(fmt.Sprintf("/{%s}", IDParam), srv.UpdateOrg)
+	})
 
-	// r.Route(UserRoute, func(r chi.Router) {
-	// 	r.Use(srv.WithSession)
-	// 	r.Use(srv.WithToken)
-	// 	r.Post("/", srv.CreateUser)
-	// 	r.Get(fmt.Sprintf("/{%s}", IDParam), srv.ReadUser)
-	// 	r.Put(fmt.Sprintf("/{%s}", IDParam), srv.UpdateUser)
-	// })
+	r.Route(UserRoute, func(r chi.Router) {
+		r.Use(srv.WithSession)
+		r.Use(srv.WithToken)
+		r.Post("/", srv.CreateUser)
+		//r.Get(fmt.Sprintf("/{%s}", IDParam), srv.ReadUser)
+		//r.Put(fmt.Sprintf("/{%s}", IDParam), srv.UpdateUser)
+	})
 
 	return r
 }

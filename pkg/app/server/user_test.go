@@ -65,6 +65,10 @@ func (s *AdminSuite) TestCreateUser() {
 	require.NotEmpty(s.T(), location)
 
 	// duplicate
+	req, err = http.NewRequest(http.MethodPost, s.ts.URL+UserRoute, bytes.NewBuffer(bs))
+	require.Nil(s.T(), err)
+	req.Header.Add(IDHeader, s.srv.ST.RootUser)
+	req.Header.Add(jwt.Authorization, jwt.ToHeaderVal(s.token.Bearer))
 	resp, err = s.c.Do(req)
 	require.Nil(s.T(), err)
 	require.Equal(s.T(), http.StatusConflict, resp.StatusCode)

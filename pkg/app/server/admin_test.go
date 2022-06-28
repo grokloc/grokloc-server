@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"testing"
 
 	"github.com/grokloc/grokloc-server/pkg/env"
 	"github.com/grokloc/grokloc-server/pkg/security"
@@ -57,4 +58,8 @@ func (s *AdminSuite) SetupTest() {
 		log.Fatal(err.Error())
 	}
 	s.token = &tok
+}
+
+func TestAdminSuite(t *testing.T) {
+	suite.Run(t, new(AdminSuite))
 }
