@@ -9,8 +9,8 @@ tasks:
   - pull-image: |
       docker pull grokloc/grokloc-server:dev
   - build: |
-      docker run --rm -it -v /home/build/grokloc-server:/grokloc -w /grokloc --env-file /home/build/grokloc-server/env/unit.env grokloc/grokloc-server:dev make mod
+      docker run --rm -v /home/build/grokloc-server:/grokloc -w /grokloc --env-file /home/build/grokloc-server/env/unit.env grokloc/grokloc-server:dev make mod
   - test: |
-      docker run --rm -it -v /home/build/grokloc-server:/grokloc -w /grokloc --env-file /home/build/grokloc-server/env/unit.env grokloc/grokloc-server:dev make local-test
+      docker run --rm -v /home/build/grokloc-server:/grokloc -w /grokloc --env-file /home/build/grokloc-server/env/unit.env grokloc/grokloc-server:dev make local-test
   - check: |
-      docker run --rm -it -v /home/build/grokloc-server:/grokloc -w /grokloc --env-file /home/build/grokloc-server/env/unit.env grokloc/grokloc-server:dev make local-check
+      docker run --rm -v /home/build/grokloc-server:/grokloc -w /grokloc --env-file /home/build/grokloc-server/env/unit.env grokloc/grokloc-server:dev make local-check
