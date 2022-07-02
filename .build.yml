@@ -1,0 +1,14 @@
+image: archlinux
+tasks:
+  - update-pacman: |
+      sudo pacman -Sy
+  - install-pkgs: |
+      sudo pacman --noconfirm -S docker
+  - pull-image: |
+      sudo docker pull grokloc/grokloc-server:dev
+  - build: |
+      docker run --rm -it -v /home/build/grokloc-server:/grokloc -w /grokloc --env-file /home/build/grokloc-server/env/unit.env -p 3000:3000 grokloc/grokloc-server:dev make mod
+  - test: |
+      docker run --rm -it -v /home/build/grokloc-server:/grokloc -w /grokloc --env-file /home/build/grokloc-server/env/unit.env -p 3000:3000 grokloc/grokloc-server:dev make local-test
+  - check: |
+      docker run --rm -it -v /home/build/grokloc-server:/grokloc -w /grokloc --env-file /home/build/grokloc-server/env/unit.env -p 3000:3000 grokloc/grokloc-server:dev make local-check
