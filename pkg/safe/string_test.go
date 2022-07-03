@@ -21,12 +21,11 @@ func (s *StringSuite) TestStringIs() {
 	require.NoError(s.T(), StringIs("hello"))
 
 	for _, v := range []string{
-		"insert",
-		"update",
-		"upsert",
-		"drop",
-		"create",
-		"select"} {
+		"insert ",
+		"update ",
+		"upsert ",
+		"drop ",
+		"create "} {
 		require.Equal(s.T(), ErrSQLDetected, StringIs(fmt.Sprintf("%s ", v)))
 		require.Equal(s.T(), ErrSQLDetected, StringIs(fmt.Sprintf(" %s ", v)))
 		require.Equal(s.T(), ErrSQLDetected, StringIs(fmt.Sprintf("%s ", strings.ToUpper(v))))

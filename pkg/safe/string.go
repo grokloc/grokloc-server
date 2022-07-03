@@ -26,7 +26,7 @@ const MaxStringLength = 8192
 
 // StringIs looks for disallowed patterns and returns an appropriate error
 func StringIs(s string) error {
-	sqlRE := regexp.MustCompile(`(?i)(?:insert|update|upsert|drop|create|select)\s`)
+	sqlRE := regexp.MustCompile(`(?i)(?:insert\s|update\s|upsert\s|drop\s|create\s)\s`)
 	if sqlRE.MatchString(s) {
 		return ErrSQLDetected
 	}
