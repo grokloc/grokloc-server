@@ -28,7 +28,7 @@ func (u User) Insert(ctx context.Context, db *sql.DB) error {
                            status,
                            schema_version)
                           values
-                          ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+                          (?,?,?,?,?,?,?,?,?,?,?)`,
 		app.UsersTableName)
 
 	result, err := db.ExecContext(ctx,
@@ -81,9 +81,9 @@ func Create(
 	q := fmt.Sprintf(`select count(*)
                           from %s
                           where
-                            id = $1
+                            id = ?
                           and
-                            status = $2`,
+                            status = ?`,
 		app.OrgsTableName)
 
 	var count int
@@ -172,7 +172,7 @@ func Read(ctx context.Context, id string, key []byte, db *sql.DB) (*User, error)
                           status,
                           schema_version
                           from %s
-                          where id = $1`,
+                          where id = ?`,
 		app.UsersTableName)
 
 	var statusRaw int
@@ -240,9 +240,9 @@ func (u *User) UpdateDisplayName(ctx context.Context,
 	displayNameDigest := security.EncodedSHA256(displayName)
 
 	q := `update users
-              set display_name = $1,
-              display_name_digest = $2
-              where id = $3`
+              set display_name = ?,
+              display_name_digest = ?
+              where id = ?`
 
 	result, err := db.ExecContext(ctx,
 		q,

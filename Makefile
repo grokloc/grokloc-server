@@ -25,6 +25,8 @@ golang-base:
 .PHONY: docker-base
 docker-base:
 	$(DOCKER) build . -f Dockerfile.base -t $(IMG_BASE)
+	$(DOCKER) system prune -f
+	$(DOCKER) system prune -f
 
 .PHONY: docker-dev
 docker-dev:
@@ -42,6 +44,8 @@ docker-push:
 docker-pull: golang-base
 	$(DOCKER) pull $(IMG_BASE)
 	$(DOCKER) pull $(IMG_DEV)
+	$(DOCKER) system prune -f
+	$(DOCKER) system prune -f
 
 .PHONY: mod
 mod:

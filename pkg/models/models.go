@@ -55,8 +55,8 @@ func Update(ctx context.Context,
 	db *sql.DB) error {
 
 	q := fmt.Sprintf(`update %s
-                          set %s = $1
-                          where id = $2`,
+                          set %s = ?
+                          where id = ? `,
 		tableName, colName)
 
 	result, err := db.ExecContext(ctx, q, val, id)

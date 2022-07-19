@@ -32,7 +32,7 @@ func Insert(
                            source,
                            source_id)
                           values
-                          ($1,$2,$3,$4)`,
+                          (?,?,?,?)`,
 		app.AuditTableName)
 
 	result, err := db.ExecContext(ctx,

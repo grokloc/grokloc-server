@@ -56,7 +56,7 @@ func Create(
                            status,
                            schema_version)
                           values
-                          ($1,$2,$3,$4,$5)`,
+                          (?,?,?,?,?)`,
 		app.OrgsTableName)
 
 	result, err := db.ExecContext(ctx,
@@ -99,7 +99,7 @@ func Read(ctx context.Context, id string, db *sql.DB) (*Org, error) {
                           status,
                           schema_version
                           from %s
-                          where id = $1`,
+                          where id = ?`,
 		app.OrgsTableName)
 
 	var statusRaw int
@@ -139,11 +139,11 @@ func (o *Org) UpdateOwner(ctx context.Context,
 	q := fmt.Sprintf(`select count(*)
                           from %s
                           where
-                          id = $1
+                          id = ?
                            and
-                          org = $2
+                          org = ?
                            and
-                          status = $3`, app.UsersTableName)
+                          status = ?`, app.UsersTableName)
 
 	var count int
 	err := db.QueryRowContext(ctx, q, owner, o.ID, models.StatusActive).Scan(&count)
