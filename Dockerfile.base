@@ -2,7 +2,7 @@ FROM golang:bullseye
 ARG go_bin="/usr/local/go/bin"
 RUN mkdir -p ${go_bin}
 ENV PATH="${go_bin}:${PATH}"
-RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ${go_bin} v1.47.0
+RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ${go_bin} v1.47.1
 RUN go install honnef.co/go/tools/cmd/staticcheck@latest
 RUN mkdir /grokloc
 WORKDIR /grokloc
